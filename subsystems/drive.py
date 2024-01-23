@@ -36,6 +36,7 @@ class Drive:
         right_speed = y-x
 
         # halves the speed for the left and right sides
+        # too fast to be testing indoors
         left_speed = left_speed*0.5
         right_speed = right_speed*0.5
 
