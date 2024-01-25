@@ -1,6 +1,3 @@
-# import the helper math functions we are using
-from utils import math_functions
-
 # import math to use trig functions and PI
 import math
 
@@ -72,6 +69,13 @@ class Drive:
         back_left_speed /= scale_back_to_range
         back_right_speed /= scale_back_to_range
 
+        # multiply all motor speeds by speed multiplier
+        speed_multiplier = 0.1
+        front_right_speed *= speed_multiplier
+        front_left_speed *= speed_multiplier
+        back_left_speed *= speed_multiplier
+        back_right_speed *= speed_multiplier
+
         # actually spin the motors
         # ordered the same as CAN device IDs
         self.front_right.set(front_right_speed)
@@ -99,12 +103,14 @@ class Drive:
 
         # mutliply the x to account for imperfect strafing
         # make a little more powerful to work correctly
-        #rotated_x *= 1.1
+        rotated_x *= 1.1
+
+        print(f"yaw: {self.imu.get_yaw()}")
 
 
         # scale all motors back to the same range [-1,1]
         # scale factor should be the max between the sum of all motor powers and 1
-        motor_power_sum = abs(joystick_y) + abs(joystick_x) + abs(joystick_turning)
+        motor_power_sum = abs(rotated_x) + abs(rotated_y) + abs(joystick_turning)
         scale_back_to_range = max(motor_power_sum, 1)
 
         # speed multiplier for testing purposes

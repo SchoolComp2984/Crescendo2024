@@ -12,6 +12,9 @@ from subsystems.drive import Drive
 # import our IMU wrapper class with methods to access different values the IMU provides
 from subsystems.imu import IMU
 
+# import our interpolation function used for joysticks
+from utils.math_functions import interpolation
+
 # import our constants which serve as "settings" for our robot/code
 # mainly IDs for CAN motors, sensors, and our controllers
 from utils import constants
@@ -64,7 +67,6 @@ class MyRobot(wpilib.TimedRobot):
 
     # ran every 20 ms during teleop
     def teleopPeriodic(self):
-        
         # get the x and y axis of the left joystick on our controller
         joystick_x = self.controller.getLeftX()
 
@@ -73,14 +75,14 @@ class MyRobot(wpilib.TimedRobot):
         # "up" on the joystick is -1 and "down" is 1
         joystick_y = self.controller.getLeftY() * -1
 
-        # controller is bad so triggers and right stick are not working
-        # using buttons :skull: for turning
-        joystick_turning = 0
-        if self.controller.getBButton():
-            joystick_turning = 0.5
-        elif self.controller.getAButton():
-            joystick_turning = -0.5
-            
+        # get the x axis of the right joystick used for turning the robot in place
+        joystick_turning = self.controller.getRightX()
+
+        # pass all of our joystick values through an interpolation function
+        # implements a "deadzone" and joystick curve
+        joystick_x = interpolation(joystick_x)
+        joystick_y = interpolation(joystick_y)
+        joystick_turning = interpolation(joystick_turning)
 
         # call the method for the drive mode we are using and provide it with our joystick values
         # this is what will spin the motors
