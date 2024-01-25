@@ -6,8 +6,20 @@ import wpilib
 # third party library
 import phoenix5
 
+#importing rev libraries for our neo motors
+import rev
+
 # import our Drive class that contains various modes of driving and methods for interfacing with our motors
 from subsystems.drive import Drive
+
+#import our Shooter class
+from subsystems.shooter import Shooter
+
+#import our intake class
+from subsystems.intake import Intake
+
+#import our climb class
+from subsystems.climb import Climb
 
 # import our IMU wrapper class with methods to access different values the IMU provides
 from subsystems.imu import IMU
@@ -38,13 +50,21 @@ class MyRobot(wpilib.TimedRobot):
         self.back_left = phoenix5._ctre.WPI_TalonFX(constants.BACK_LEFT_ID)
         self.back_right = phoenix5._ctre.WPI_TalonFX(constants.BACK_RIGHT_ID)
 
-        # create a reference to our IMU
-        self.imu_motor_controller = phoenix5._ctre.WPI_TalonSRX(constants.IMU_ID)
-        self.imu = IMU(self.imu_motor_controller)
-
         # invert the motors on the right side of our robot
         self.front_right.setInverted(True)
         self.back_right.setInverted(True)
+
+        #create reference to our Neo motors
+        self.shooter_motor = rev.CANSparkMax(constants.SHOOTER_MOTOR_ID)
+        self.intake_motor = rev.CANSparkMax(constants.INTAKE_MOTOR_ID)
+
+        #create reference to our climb motors (Falcon 500)
+        self.climb_motor_left = phoenix5._ctre.WPI_TalonFX(constants.CLIMB_LEFT_ID)
+        self.climb_motor_right = phoenix5._ctre.WPI_TalonFX(constants.CLIMB_RIGHT_ID)
+
+        # create a reference to our IMU
+        self.imu_motor_controller = phoenix5._ctre.WPI_TalonSRX(constants.IMU_ID)
+        self.imu = IMU(self.imu_motor_controller)
 
         # create an instance of our controller
         # it is an xbox controller at id constants.CONTROLLER_ID, which is 0
@@ -52,6 +72,15 @@ class MyRobot(wpilib.TimedRobot):
 
         # create an instance of our Drive class that contains methods for different modes of driving
         self.drive = Drive(self.front_right, self.front_left, self.back_left, self.back_right, self.imu)
+        
+        #create an instance of our Shooter class that contains methods for shooting
+        self.shoot = Shooter(self.shooter_motor)
+
+        #create an instance of our Intake class that contains methods for shooting
+        self.intake = Intake(self.intake_motor)
+
+        #create an instance of our Climb class that contains methods for climbing
+        self.climb = Climb(self.climb_motor_left, self.climb_motor_right)
 
     # setup before our robot transitions to autonomous
     def autonomousInit(self):
@@ -78,15 +107,9 @@ class MyRobot(wpilib.TimedRobot):
         # get the x axis of the right joystick used for turning the robot in place
         joystick_turning = self.controller.getRightX()
 
-        # pass all of our joystick values through an interpolation function
-        # implements a "deadzone" and joystick curve
-        joystick_x = interpolation(joystick_x)
-        joystick_y = interpolation(joystick_y)
-        joystick_turning = interpolation(joystick_turning)
-
         # call the method for the drive mode we are using and provide it with our joystick values
         # this is what will spin the motors
-        self.drive.mecanum_drive_field_oriented(joystick_x, joystick_y, joystick_turning)
+        self.drive.mecanum_drive_robot_oriented(joystick_x, joystick_y, joystick_turning)
         
 
         # print out the joystick values

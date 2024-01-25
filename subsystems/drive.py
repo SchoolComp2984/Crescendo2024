@@ -83,52 +83,6 @@ class Drive:
         self.back_left.set(back_left_speed)
         self.back_right.set(back_right_speed)
 
-    # mecanum drive pretty much same functionality as above (forwards, backwards, left, right, and turning in place)
-    # oriented with the field/driver's POV
-    # coded by Aram on Tuesday 1/23
-    def mecanum_drive_field_oriented(self, joystick_x, joystick_y, joystick_turning):
-        # get the angle or our robot (method returns in degrees)
-        if self.imu.is_ready():
-            robot_angle_degrees = self.imu.get_yaw()
-        else:
-            return
-
-        # convert robot angle to radians
-        robot_angle_radians = robot_angle_degrees * math.pi / 180
-
-        # rotate x and y from left joystick based on our angle
-        # ask Aram about this math
-        rotated_x = joystick_x * math.cos(robot_angle_radians * -1) - joystick_y * math.sin(robot_angle_radians * -1)
-        rotated_y = joystick_x * math.sin(robot_angle_radians * -1) + joystick_y * math.cos(robot_angle_radians * -1)
-
-        # mutliply the x to account for imperfect strafing
-        # make a little more powerful to work correctly
-        rotated_x *= 1.1
-
-        print(f"yaw: {self.imu.get_yaw()}")
-
-
-        # scale all motors back to the same range [-1,1]
-        # scale factor should be the max between the sum of all motor powers and 1
-        motor_power_sum = abs(rotated_x) + abs(rotated_y) + abs(joystick_turning)
-        scale_back_to_range = max(motor_power_sum, 1)
-
-        # speed multiplier for testing purposes
-        speed_multiplier = 0.3
-
-        # calculate speeds for each motor based on rotated x and y for field oriented and turning in place
-        # scale each speed back to [-1, 1] range
-        # basically the same as robot centric speed calculation but plugging in translated x and y
-        front_right_speed = (rotated_y - rotated_x - joystick_turning) / scale_back_to_range * speed_multiplier
-        front_left_speed = (rotated_y + rotated_x + joystick_turning) / scale_back_to_range * speed_multiplier
-        back_left_speed = (rotated_y - rotated_x + joystick_turning) / scale_back_to_range * speed_multiplier
-        back_right_speed = (rotated_y + rotated_x - joystick_turning) / scale_back_to_range * speed_multiplier
-
-        # actually spin the motors
-        self.front_right.set(front_right_speed)
-        self.front_left.set(front_left_speed)
-        self.back_left.set(back_left_speed)
-        self.back_right.set(back_right_speed)
 
 
         
