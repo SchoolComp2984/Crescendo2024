@@ -23,6 +23,22 @@ def interpolation_drive(value):
     elif value_abs<.65: return .33
     #if under .9, return .6
     elif value_abs<.9: return .66
-    #if it's normal, return 1.
+    #if it's normal, return 1. Full speed
     else: return 1
-    
+
+"""
+      def steer_pid(self, error):
+            adjustment(p term) = error * self.p   
+            if self.integral > 0 and (error * self.i < 0): if over, start over but go down
+                  self.integral = 0
+            if (self.integral < 0) and (error * self.i > 0): if under, start over and go up
+                  self.integral = 0
+            self.integral += error*self.i      
+            if (-20 < error) and (error < 20):
+                  adjustment += self.integral
+            else: 
+                  self.integral=0
+            adjustment += (error - self.previous_input) * self.d
+            self.previous_input = error
+            return adjustment
+            """
