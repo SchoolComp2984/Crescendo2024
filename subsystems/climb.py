@@ -3,7 +3,7 @@
 class Climb:
     def __init__(self, _climb_motor_left, _climb_motor_right):
         #creating references to the two climbing motors
-        #one motor on each side possibly.
+        #one motor on each side 
         self.climb_motor_left = _climb_motor_left
         self.climb_motor_right = _climb_motor_right
 
