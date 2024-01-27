@@ -83,7 +83,8 @@ class Drive:
         self.back_left.set(back_left_speed)
         self.back_right.set(back_right_speed)
 
+    #field oriented drive
+    #same mecanum drive train except the drive is no longer robot-oriented and is field-oriented
+    #forwards = moves towards other side of field not in front of the robot
 
-
-        
  

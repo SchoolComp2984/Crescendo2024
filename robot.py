@@ -25,7 +25,10 @@ from subsystems.climb import Climb
 from subsystems.imu import IMU
 
 # import our interpolation function used for joysticks
-from utils.math_functions import interpolation
+from utils.math_functions import interpolation_drive
+
+#import our PID function
+from utils.pid import PID
 
 # import our constants which serve as "settings" for our robot/code
 # mainly IDs for CAN motors, sensors, and our controllers
@@ -102,7 +105,7 @@ class MyRobot(wpilib.TimedRobot):
         pass
         
     # ran every 20 ms during teleop
-    def teleopPeriodic(self, toggle):
+    def teleopPeriodic(self):
         # get the x and y axis of the left joystick on our controller
         joystick_x = self.controller.getLeftX()
 
@@ -142,5 +145,5 @@ class MyRobot(wpilib.TimedRobot):
 if __name__ == "__main__":
     wpilib.run(MyRobot)
 
-# the command that deploys our code to our robot
+# the command that deploys our code to our robot:
 # py -3 -m robotpy deploy

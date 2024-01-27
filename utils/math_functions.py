@@ -21,7 +21,7 @@ def interpolation_drive(value):
     if value_abs<.14: return 0
     #if under .65, return .33
     elif value_abs<.65: return .33
-    #if under .9, return .6
+    #if under .9, return .66
     elif value_abs<.9: return .66
     #if it's normal, return 1. Full speed
     else: return 1
