@@ -9,6 +9,9 @@ import phoenix5
 #importing rev libraries for our neo motors
 import rev
 
+#import our Autonomous
+from commands.autonomous import Autonomous
+
 # import our Drive class that contains various modes of driving and methods for interfacing with our motors
 from subsystems.drive import Drive
 
@@ -89,16 +92,13 @@ class MyRobot(wpilib.TimedRobot):
         # toggle between 0 and whatever max number we want to set it to
         self.drive_mode_toggle = 0
 
-        # set the maximum value of our drive modes we can toggle between
-        self.drive_mode_toggle_max = 1
-
     # setup before our robot transitions to autonomous
     def autonomousInit(self):
         pass
 
     # ran every 20 ms during autonomous mode
     def autonomousPeriodic(self):
-        pass
+        
 
     # setup before our robot transitions to teleop (where we control with a joystick or custom controller)
     def teleopInit(self):
@@ -118,21 +118,23 @@ class MyRobot(wpilib.TimedRobot):
         joystick_turning = self.controller.getRightX()
 
         #Calling the method for the drive mode with a toggle that will switch between driving modes
-        #if the start button is pressed
-        if self.controller.getStartButton():
-            #set the variable to 0 if it is currently at the max value
-           if self.drive_mode_toggle == self.drive_mode_toggle_max: self.drive_mode_toggle = 0
-           #if not at the max value, we add one to the variable which will bring us to the next mode
-           else: self.drive_mode_toggle +=1
+        if self.controller.getAButton(): drive_mode_toggle = 0
+        elif self.controller.getBButton(): drive_mode_toggle = 1
+        elif self.controller.getYButton(): drive_mode_toggle = 2
 
         #Driving modes that will spin the motors
         #We pass in the joystick values for the drive controls
         if self.drive_mode_toggle == 0:
-            #if the toggle is at zero, we are in mecanum drive mode
+            #if the A button is pressed, we are in robot oriented drive
             self.drive.mecanum_drive_robot_oriented(joystick_x, joystick_y, joystick_turning)
         elif self.drive_mode_toggle == 1:
-            #if the toggle is at one, we are in arcade drive
+            #if the B button is pressed, we go into Evan's drive
             self.drive.evans_drive(joystick_x, joystick_y)
+        elif self.drive_mode_toggle == 2:
+            #if the Y button is pressed, we go into field oriented drive
+            self.drive.field_oriented_drive(joystick_x, joystick_y, joystick_turning)
+            if(self.controller.getBackButton()): self.imu.reset_yaw
+
 
         # print out the joystick values
         # mainly used for debugging where we realized the y axis on the lefy joystick was inverted

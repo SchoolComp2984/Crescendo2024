@@ -86,5 +86,41 @@ class Drive:
     #field oriented drive
     #same mecanum drive train except the drive is no longer robot-oriented and is field-oriented
     #forwards = moves towards other side of field not in front of the robot
+    def field_oriented_drive(self, joystick_x, joystick_y, rotation):
+        #gets angle of the robot compared to the true forwards that was set. stores it in the variable
+        robot_angle_in_degrees = self.imu.get_yaw()
 
- 
+        #takes angle and converts into radians
+        robot_angle_in_radians = robot_angle_in_degrees*math.pi/180
+
+        #resets the direction that we use as the true forwards
+        #random key that we'll never randomly press
+        #if(self.controller.get)
+
+        #rotates joystick values based on what angle the robot is at
+        rotated_x = joystick_x*math.cos(-robot_angle_in_radians)-joystick_y*math.sin(-robot_angle_in_radians)
+        rotated_y = joystick_x*math.sin(-robot_angle_in_radians)+joystick_y*math.cos(-robot_angle_in_radians)
+
+        #going side to side has friction so multiply by 1.1 to account for that
+        joystick_x = joystick_x*1.1
+        
+        #caluculates the speed that each motor needs to have and makes sure that it's between [-1,1]
+        maximum_value_of_joysticks = abs(joystick_x)+abs(joystick_y)+abs(rotation)
+        scale_factor = max(maximum_value_of_joysticks,1)
+        front_left_speed = (rotated_y+rotated_x+rotation)/scale_factor
+        back_right_speed = (rotated_y+rotated_x-rotation)/scale_factor
+        back_left_speed = (rotated_y-rotated_x+rotation)/scale_factor
+        front_right_speed = (rotated_y-rotated_x-rotation)/scale_factor
+        
+        #since we're testing the robot inside, we don't want it to go full speed, so the motors are multiplied by a decimal
+        multiplier = 0.3
+        front_left_speed = front_left_speed*multiplier
+        front_right_speed = front_right_speed*multiplier
+        back_left_speed = back_left_speed*multiplier
+        back_right_speed = back_right_speed*multiplier
+        
+        #these variables set the speed of the robot
+        self.front_left.set(front_left_speed)
+        self.front_right.set(front_right_speed)
+        self.back_left.set(back_left_speed)
+        self.back_right.set(back_right_speed)
