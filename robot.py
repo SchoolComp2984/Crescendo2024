@@ -61,7 +61,7 @@ class MyRobot(wpilib.TimedRobot):
         self.back_right.setInverted(True)
 
         #create reference to our Neo motors
-        self.shooter_motor = rev.CANSparkMax(constants.SHOOTER_MOTOR_ID)
+        self.shooter_motor = rev.CANSparkMax(constants.SHOOTER_MOTOR_ID, rev.CANSparkBas)
         self.intake_motor = rev.CANSparkMax(constants.INTAKE_MOTOR_ID)
 
         #create reference to our climb motors (Falcon 500)
@@ -98,7 +98,7 @@ class MyRobot(wpilib.TimedRobot):
 
     # ran every 20 ms during autonomous mode
     def autonomousPeriodic(self):
-        
+        pass
 
     # setup before our robot transitions to teleop (where we control with a joystick or custom controller)
     def teleopInit(self):

@@ -4,7 +4,7 @@ from subsystems.shooter import Shooter
 from subsystems.intake import Intake
 
 class Autonomous:
-    def __init__(self, )
+    pass
 """
 possibilities:
 use of sensors to sense apriltags to move and adjust the robot into the right spot for whatever we're doing
