@@ -27,10 +27,18 @@ while True:
     mask = cv2.inRange(frame, lower_orange, upper_orange)
 
     # instead of having a white mask showing what is detected, show the color from the original frame
-    colored_mask = cv2.bitwise_and(frame, frame, mask=mask)
+    # threshold = cv2.bitwise_and(frame, frame, mask=mask)
+    gray = cv2.cvtColor(mask, cv2.COLOR_BGR2GRAY) 
+
+    _, threshold = cv2.threshold(gray, 127, 255, cv2.THRESH_BINARY) 
+
+    # using a findContours() function 
+    contours, _ = cv2.findContours( 
+        threshold, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE) 
+    
 
     # show the current frame in a window called Note Detection
-    cv2.imshow("Note Detection", colored_mask)
+    cv2.imshow("Note Detection", contours)
 
     # if a key has been pressed AND that key is "q", break from the loop/stop reading from the camera
     if cv2.waitKey(1) & 0xFF == ord("q"):
