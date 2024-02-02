@@ -48,3 +48,23 @@ class PID:
         power = proportional_term + integral_term + derivative_term
         return power
     
+    def keep_integral(self, error):
+        #a pid that keeps the integral which will probably be used for spinning the motor
+        #may not even need this but might as well have one.
+        #basically the same as the other PID we have.
+        #not turning so no need to clear integral.
+        proportional_term = error * self.kp
+
+        self.integral += error * self.ki
+        integral_term = 0
+        if error > -20 and error < 20:
+            integral_term += self.integral
+        else: self.integral = 0
+
+        derivative_term = self.kd * (error - self.previous_error)
+
+        self.previous_error = error
+
+        power = proportional_term + integral_term + derivative_term
+
+        return power
