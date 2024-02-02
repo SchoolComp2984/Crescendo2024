@@ -60,7 +60,8 @@ class MyRobot(wpilib.TimedRobot):
         self.front_right.setInverted(True)
         self.back_right.setInverted(True)
 
-        #create reference tso our Neo motors
+
+        #create reference to our Neo motors
         self.shooter_motor = rev.CANSparkMax(constants.SHOOTER_MOTOR_ID, rev.CANSparkMaxLowLevel.MotorType.kBrushless)
         self.intake_motor = rev.CANSparkMax(constants.INTAKE_MOTOR_ID, rev.CANSparkMaxLowLevel.MotorType.kBrushless)
 
