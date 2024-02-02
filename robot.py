@@ -60,9 +60,9 @@ class MyRobot(wpilib.TimedRobot):
         self.front_right.setInverted(True)
         self.back_right.setInverted(True)
 
-        #create reference to our Neo motors
-        self.shooter_motor = rev.CANSparkMax(constants.SHOOTER_MOTOR_ID, rev.CANSparkBas)
-        self.intake_motor = rev.CANSparkMax(constants.INTAKE_MOTOR_ID)
+        #create reference tso our Neo motors
+        self.shooter_motor = rev.CANSparkMax(constants.SHOOTER_MOTOR_ID, rev.CANSparkMaxLowLevel.MotorType.kBrushless)
+        self.intake_motor = rev.CANSparkMax(constants.INTAKE_MOTOR_ID, rev.CANSparkMaxLowLevel.MotorType.kBrushless)
 
         #create reference to our climb motors (Falcon 500)
         self.climb_motor_left = phoenix5._ctre.WPI_TalonFX(constants.CLIMB_LEFT_ID)
@@ -71,6 +71,12 @@ class MyRobot(wpilib.TimedRobot):
         # create a reference to our IMU
         self.imu_motor_controller = phoenix5._ctre.WPI_TalonSRX(constants.IMU_ID)
         self.imu = IMU(self.imu_motor_controller)
+
+        #reference to the two arm motors that move it up and down
+        self.arm_motor_left = rev.CANSparkMax(constants.ARM_LEFT_ID, rev.CANSparkMaxLowLevel.MotorType.kBrushless)
+        self.arm_motor_right = rev.CANSparkMax(constants.ARM_RIGHT_ID, rev.CANSparkMaxLowLevel.MotorType.kBrushless)
+        self.imu_arm_controller = phoenix5._ctre.WPI_TalonSRX(constants.ARM_IMU_ID)
+        self.arm_imu = IMU(self.imu_arm_controller)
 
         # create an instance of our controller
         # it is an xbox controller at id constants.CONTROLLER_ID, which is 0
