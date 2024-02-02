@@ -61,8 +61,8 @@ class MyRobot(wpilib.TimedRobot):
         self.back_right.setInverted(True)
 
         #create reference to our Neo motors
-        self.shooter_motor = rev.CANSparkMax(constants.SHOOTER_MOTOR_ID, rev.CANSparkBas)
-        self.intake_motor = rev.CANSparkMax(constants.INTAKE_MOTOR_ID)
+        self.shooter_motor = rev.CANSparkMax(constants.SHOOTER_MOTOR_ID, rev.CANSparkMaxLowLevel.MotorType.kBrushless)
+        self.intake_motor = rev.CANSparkMax(constants.INTAKE_MOTOR_ID, rev.CANSparkMaxLowLevel.MotorType.kBrushless)
 
         #create reference to our climb motors (Falcon 500)
         self.climb_motor_left = phoenix5._ctre.WPI_TalonFX(constants.CLIMB_LEFT_ID)
