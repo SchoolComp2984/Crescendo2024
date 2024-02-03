@@ -92,9 +92,11 @@ class MyRobot(wpilib.TimedRobot):
         # create an instance of our Drive class that contains methods for different modes of driving
         self.drive = Drive(self.front_right, self.front_left, self.back_left, self.back_right, self.imu)
         
-        #create an instance of our Shooter class that contains methods for shooting
-        self.shoot = Shooter(self.shooter_motor)
+        #create an instance of our shooting function
+        self.shoot = Shoot(self.shooter_motor)
 
+        #create an instance of our amping function
+        self.amp = Amp(self.shooter_motor)
         #create an instance of our Intake class that contains methods for shooting
         self.intake = Intake(self.intake_motor)
 
@@ -149,11 +151,10 @@ class MyRobot(wpilib.TimedRobot):
             if self.controller.getBackButton(): self.imu.reset_yaw
 
         #if the left bumper is pressed, we shoot.
-        if self.controller.getLeftBumperPressed(): self.auto_shoot.autonomous_shoot()
+        if self.controller.getLeftBumperPressed(): self.shoot.autonomous_shoot()
         
         #if the right bumber is pressed, we do the amp
-        if self.controller.getRightBumperPressed(): self.auto_amp.autonomous_amp()
-
+        if self.controller.getRightBumperPressed(): self.amp.autonomous_amp()
 
         # print out the joystick values
         # mainly used for debugging where we realized the y axis on the lefy joystick was inverted

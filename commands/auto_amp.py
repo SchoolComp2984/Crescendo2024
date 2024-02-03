@@ -82,7 +82,7 @@ class Amp:
         get current arm yaw
         """
         #Arm.move_arm_to_angle(curr_yaw, desired_yaw)
-    def autonomous_shoot(self):
+    def autonomous_amp(self):
 
         if self.amp_stage == self.AMP_IDLE:
             self.amp_stage = self.ANGLE_ROBOT
