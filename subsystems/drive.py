@@ -69,7 +69,7 @@ class Drive:
         back_right_speed /= scale_back_to_range
 
         # multiply all motor speeds by speed multiplier
-        speed_multiplier = 0.1
+        speed_multiplier = 0.5
         front_right_speed *= speed_multiplier
         front_left_speed *= speed_multiplier
         back_left_speed *= speed_multiplier
@@ -112,7 +112,7 @@ class Drive:
         front_right_speed = (rotated_y-rotated_x-rotation)/scale_factor
         
         #since we're testing the robot inside, we don't want it to go full speed, so the motors are multiplied by a decimal
-        multiplier = 0.3
+        multiplier = 0.6
         front_left_speed = front_left_speed*multiplier
         front_right_speed = front_right_speed*multiplier
         back_left_speed = back_left_speed*multiplier

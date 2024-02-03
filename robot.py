@@ -68,22 +68,22 @@ class MyRobot(wpilib.TimedRobot):
 
 
         #create reference to our Neo motors
-        self.shooter_motor = rev.CANSparkMax(constants.SHOOTER_MOTOR_ID, rev.CANSparkMaxLowLevel.MotorType.kBrushless)
-        self.intake_motor = rev.CANSparkMax(constants.INTAKE_MOTOR_ID, rev.CANSparkMaxLowLevel.MotorType.kBrushless)
+        #self.shooter_motor = rev.CANSparkMax(constants.SHOOTER_MOTOR_ID, rev.CANSparkLowLevel.MotorType.kBrushless)
+        #self.intake_motor = rev.CANSparkMax(constants.INTAKE_MOTOR_ID, rev.CANSparkLowLevel.MotorType.kBrushless)
 
         #create reference to our climb motors (Falcon 500)
-        self.climb_motor_left = phoenix5._ctre.WPI_TalonFX(constants.CLIMB_LEFT_ID)
-        self.climb_motor_right = phoenix5._ctre.WPI_TalonFX(constants.CLIMB_RIGHT_ID)
+        #self.climb_motor_left = phoenix5._ctre.WPI_TalonFX(constants.CLIMB_LEFT_ID)
+        #self.climb_motor_right = phoenix5._ctre.WPI_TalonFX(constants.CLIMB_RIGHT_ID)
 
         # create a reference to our IMU
         self.imu_motor_controller = phoenix5._ctre.WPI_TalonSRX(constants.IMU_ID)
         self.imu = IMU(self.imu_motor_controller)
 
         #reference to the two arm motors that move it up and down
-        self.arm_motor_left = rev.CANSparkMax(constants.ARM_LEFT_ID, rev.CANSparkMaxLowLevel.MotorType.kBrushless)
-        self.arm_motor_right = rev.CANSparkMax(constants.ARM_RIGHT_ID, rev.CANSparkMaxLowLevel.MotorType.kBrushless)
-        self.imu_arm_controller = phoenix5._ctre.WPI_TalonSRX(constants.ARM_IMU_ID)
-        self.arm_imu = IMU(self.imu_arm_controller)
+        self.arm_motor_left = rev.CANSparkMax(constants.ARM_LEFT_ID, rev.CANSparkLowLevel.MotorType.kBrushless)
+        self.arm_motor_right = rev.CANSparkMax(constants.ARM_RIGHT_ID, rev.CANSparkLowLevel.MotorType.kBrushless)
+        #self.imu_arm_controller = phoenix5._ctre.WPI_TalonSRX(constants.ARM_IMU_ID)
+        #     self.arm_imu = IMU(self.imu_arm_controller)
 
         # create an instance of our controller
         # it is an xbox controller at id constants.CONTROLLER_ID, which is 0
@@ -93,19 +93,19 @@ class MyRobot(wpilib.TimedRobot):
         self.drive = Drive(self.front_right, self.front_left, self.back_left, self.back_right, self.imu)
         
         #create an instance of our shooting function
-        self.shoot = Shoot(self.shooter_motor)
+        #self.shoot = Shoot(self.shooter_motor)
 
         #create an instance of our amping function
-        self.auto_amp = AutoAmp(self.shooter_motor)
+        #self.auto_amp = AutoAmp(self.shooter_motor)
         #create an instance of our Intake class that contains methods for shooting
-        self.intake = Intake(self.intake_motor)
+        #self.intake = Intake(self.intake_motor)
 
         #create an instance of our Climb class that contains methods for climbing
-        self.climb = Climb(self.climb_motor_left, self.climb_motor_right)
+        #self.climb = Climb(self.climb_motor_left, self.climb_motor_right)
 
         # variable for what mode of drive we are in
         # toggle between 0 and whatever max number we want to set it to
-        self.drive_mode_toggle = 2
+        self.drive_mode_toggle = 0
 
     # setup before our robot transitions to autonomous
     def autonomousInit(self):
@@ -133,28 +133,32 @@ class MyRobot(wpilib.TimedRobot):
         joystick_turning = self.controller.getRightX()
 
         #Calling the method for the drive mode with a toggle that will switch between driving modes
-        if self.controller.getAButton(): drive_mode_toggle = 0
-        elif self.controller.getBButton(): drive_mode_toggle = 1
-        elif self.controller.getYButton(): drive_mode_toggle = 2
+        if self.controller.getAButton(): self.drive_mode_toggle = 0
+        elif self.controller.getBButton(): self.drive_mode_toggle = 1
+        elif self.controller.getYButton(): self.drive_mode_toggle = 2
 
         #Driving modes that will spin the motors
         #We pass in the joystick values for the drive controls
+        
         if self.drive_mode_toggle == 0:
             #if the A button is pressed, we are in robot oriented drive
-            self.drive.mecanum_drive_robot_oriented(joystick_x, joystick_y, joystick_turning)
+            self.drive.field_oriented_drive(joystick_x, joystick_y, joystick_turning)
+            if self.controller.getBackButton():
+                self.imu.reset_yaw()
+
         elif self.drive_mode_toggle == 1:
             #if the B button is pressed, we go into Evan's drive
             self.drive.evans_drive(joystick_x, joystick_y)
+            
         elif self.drive_mode_toggle == 2:
             #if the Y button is pressed, we go into field oriented drive
-            self.drive.field_oriented_drive(joystick_x, joystick_y, joystick_turning)
-            if self.controller.getBackButton(): self.imu.reset_yaw()
+            self.drive.mecanum_drive_robot_oriented(joystick_x, joystick_y, joystick_turning)
 
         #if the left bumper is pressed, we shoot.
-        if self.controller.getLeftBumperPressed(): self.shoot.autonomous_shoot()
+        #if self.controller.getLeftBumperPressed(): self.shoot.autonomous_shoot()
         
         #if the right bumber is pressed, we do the amp
-        if self.controller.getRightBumperPressed(): self.auto_amp.autonomous_amp()
+        #if self.controller.getRightBumperPressed(): self.auto_amp.autonomous_amp()
 
         # print out the joystick values
         # mainly used for debugging where we realized the y axis on the lefy joystick was inverted

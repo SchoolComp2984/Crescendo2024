@@ -19,8 +19,7 @@ class IMU(phoenix5._ctre.sensors.PigeonIMU):
     def reset_yaw(self):
         # figure out how to do this
         #okay this may work.
-        self.setYaw(0)
-        pass
+        self.addYaw(-self.get_yaw())
 
     # check if our IMU has "waken up" and is ready to be used
     def is_ready(self):
