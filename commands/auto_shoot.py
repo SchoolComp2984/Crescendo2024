@@ -12,7 +12,8 @@ class Shoot:
         self.ARM_ANGLE_MOVE = 5 #move the arm to the angle that we had calculated
         self.SHOOTER_MOTOR_SPIN = 6 #start spinning the shooter motors for about one second
         self.FEED_NOTE = 7 #feed the note into the shooter motors, firing the note
-        self.SHOOTER_DONE = 8 #done with everything
+        self.RETURN_ARM = 8 #move the arm back down to the normal angle.
+        self.SHOOTER_DONE = 9 #done with everything
         self.shooter_stage = self.SHOOTER_IDLE #set the current state to the idle state
 
     def scan_for_april_tags(self):
@@ -76,7 +77,10 @@ class Shoot:
         when done return true
         note will have gone into shooter by now and will have been shot!
         """
-
+    def return_arm():
+        """
+        move arm back to orignal position
+        """
     def autonomous_shoot(self):
         if self.shooter_stage == self.SHOOTER_IDLE:
             self.shooter_stage = self.ANGLE_SCAN
@@ -108,6 +112,10 @@ class Shoot:
 
         elif self.shooter_stage == self.FEED_NOTE:
             if self.feed_note():
+                self.shooter_stage = self.RETURN_ARM
+        
+        elif self.shooter_stage == self.RETURN_ARM:
+            if self.return_arm():
                 self.shooter_stage = self.SHOOTER_DONE
 
         elif self.shooter_stage == self.SHOOTER_DONE:
