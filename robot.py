@@ -12,6 +12,12 @@ import rev
 #import our Autonomous
 from commands.autonomous import Autonomous
 
+#import our shooting
+from commands.auto_shoot import Shoot
+
+#import our amp 
+from commands.auto_amp import Amp
+
 # import our Drive class that contains various modes of driving and methods for interfacing with our motors
 from subsystems.drive import Drive
 
@@ -140,7 +146,13 @@ class MyRobot(wpilib.TimedRobot):
         elif self.drive_mode_toggle == 2:
             #if the Y button is pressed, we go into field oriented drive
             self.drive.field_oriented_drive(joystick_x, joystick_y, joystick_turning)
-            if(self.controller.getBackButton()): self.imu.reset_yaw
+            if self.controller.getBackButton(): self.imu.reset_yaw
+
+        #if the left bumper is pressed, we shoot.
+        if self.controller.getLeftBumperPressed(): self.auto_shoot.autonomous_shoot()
+        
+        #if the right bumber is pressed, we do the amp
+        if self.controller.getRightBumperPressed(): self.auto_amp.autonomous_amp()
 
 
         # print out the joystick values

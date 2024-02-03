@@ -24,6 +24,7 @@ class Amp:
             turn 90 degrees to the left
         else:
             turn 90 degrees to the right
+            likely the use of PIDS for turning.
         """
     def amp_scan(self):
         #scanning the apriltag on the amp.
@@ -41,6 +42,7 @@ class Amp:
             move right a certain amount
         if right of amp:
             move left a certain amount
+        pids for moving? likely
         """
         pass
 
@@ -80,7 +82,7 @@ class Amp:
         get current arm yaw
         """
         #Arm.move_arm_to_angle(curr_yaw, desired_yaw)
-    def auto_shoot(self):
+    def autonomous_shoot(self):
 
         if self.amp_stage == self.AMP_IDLE:
             self.amp_stage = self.ANGLE_ROBOT
