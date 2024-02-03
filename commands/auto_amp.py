@@ -1,6 +1,6 @@
 from subsystems.arm import Arm
 
-class Amp:
+class AutoAmp:
     def _init__(self):
         # stages for using the amp.
         #iterating through these stages with a tracker that will move on to the next stage after the current one is finished.

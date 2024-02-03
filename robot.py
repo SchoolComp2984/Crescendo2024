@@ -16,7 +16,7 @@ from commands.autonomous import Autonomous
 from commands.auto_shoot import Shoot
 
 #import our amp 
-from commands.auto_amp import Amp
+from commands.auto_amp import AutoAmp
 
 # import our Drive class that contains various modes of driving and methods for interfacing with our motors
 from subsystems.drive import Drive
@@ -28,7 +28,7 @@ from subsystems.shooter import Shooter
 from subsystems.intake import Intake
 
 #import our climb class
-from subsystems.climb import Climb
+from subsystems.climber import Climb
 
 # import our IMU wrapper class with methods to access different values the IMU provides
 from subsystems.imu import IMU
@@ -96,7 +96,7 @@ class MyRobot(wpilib.TimedRobot):
         self.shoot = Shoot(self.shooter_motor)
 
         #create an instance of our amping function
-        self.amp = Amp(self.shooter_motor)
+        self.auto_amp = AutoAmp(self.shooter_motor)
         #create an instance of our Intake class that contains methods for shooting
         self.intake = Intake(self.intake_motor)
 
@@ -105,7 +105,7 @@ class MyRobot(wpilib.TimedRobot):
 
         # variable for what mode of drive we are in
         # toggle between 0 and whatever max number we want to set it to
-        self.drive_mode_toggle = 0
+        self.drive_mode_toggle = 2
 
     # setup before our robot transitions to autonomous
     def autonomousInit(self):
@@ -148,13 +148,13 @@ class MyRobot(wpilib.TimedRobot):
         elif self.drive_mode_toggle == 2:
             #if the Y button is pressed, we go into field oriented drive
             self.drive.field_oriented_drive(joystick_x, joystick_y, joystick_turning)
-            if self.controller.getBackButton(): self.imu.reset_yaw
+            if self.controller.getBackButton(): self.imu.reset_yaw()
 
         #if the left bumper is pressed, we shoot.
         if self.controller.getLeftBumperPressed(): self.shoot.autonomous_shoot()
         
         #if the right bumber is pressed, we do the amp
-        if self.controller.getRightBumperPressed(): self.amp.autonomous_amp()
+        if self.controller.getRightBumperPressed(): self.auto_amp.autonomous_amp()
 
         # print out the joystick values
         # mainly used for debugging where we realized the y axis on the lefy joystick was inverted
