@@ -51,7 +51,7 @@ class MyRobot(wpilib.TimedRobot):
         # each Falcon 500 has a Talon FX motor controller
         # we need to provide each instance of the Talon FX class with its corresponding CAN ID
         # we configured the IDs using the Phoenix Tuner
-        self.front_right = phoenix5._ctre.WPI_TalonFX(constants.FRONT_RIGHT_ID)
+        self.front_right = phoenix5._ctre.WPI_ TalonFX(constants.FRONT_RIGHT_ID)
         self.front_left = phoenix5._ctre.WPI_TalonFX(constants.FRONT_LEFT_ID)
         self.back_left = phoenix5._ctre.WPI_TalonFX(constants.BACK_LEFT_ID)
         self.back_right = phoenix5._ctre.WPI_TalonFX(constants.BACK_RIGHT_ID)
@@ -61,8 +61,8 @@ class MyRobot(wpilib.TimedRobot):
         self.back_right.setInverted(True)
 
         #create reference to our Neo motors
-        self.shooter_motor = rev.CANSparkMax(constants.SHOOTER_MOTOR_ID, rev.CANSparkBas)
-        self.intake_motor = rev.CANSparkMax(constants.INTAKE_MOTOR_ID)
+        self.shooter_motor = rev.CANSparkMax(constants.SHOOTER_MOTOR_ID, rev.CANSparkMaxLowLevel.MotorType.kBrushless)
+        self.intake_motor = rev.CANSparkMax(constants.INTAKE_MOTOR_ID, rev.CANSparkMaxLowLevel.MotorType.kBrushless)
 
         #create reference to our climb motors (Falcon 500)
         self.climb_motor_left = phoenix5._ctre.WPI_TalonFX(constants.CLIMB_LEFT_ID)
