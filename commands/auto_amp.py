@@ -1,8 +1,9 @@
 from subsystems.arm import Arm
 
-class Amp:
+class AutoAmp:
     def _init__(self):
-        # stages for Amping
+        # stages for using the amp.
+        #iterating through these stages with a tracker that will move on to the next stage after the current one is finished.
         self.AMP_IDLE = 0
         self.ANGLE_ROBOT = 1
         self.AMP_SCAN = 2
@@ -15,10 +16,19 @@ class Amp:
         self.amp_stage = self.AMP_IDLE
 
     def angle_robot(self):
+        #angles the robot perpendicularly with the wall so that the back is facing directly at the amp.
+        #aligns us fully and all we have to do is then to move left or right.
+        #IMPORTANT - DEPENDING ON WHETHER WE ARE RED OR BLUE, THE ANGLE THAT WE TURN WILL CHANGE.
         """
-        angle the robot pependicular with the wall.
+        if red team:
+            turn 90 degrees to the left
+        else:
+            turn 90 degrees to the right
+            likely the use of PIDS for turning.
         """
     def amp_scan(self):
+        #scanning the apriltag on the amp.
+        #looking for coordinates that we can use to allign ourselves with to be squarely in front of the amp.
         """
         if we get a raspi value return true
         else return false
@@ -26,8 +36,13 @@ class Amp:
         pass
 
     def center_robot(self):
+        #center the robot with the amp.
         """
-        angle robot perpendicular 
+        if left of amp:
+            move right a certain amount
+        if right of amp:
+            move left a certain amount
+        pids for moving? likely
         """
         pass
 
@@ -41,26 +56,33 @@ class Amp:
         pass
 
     def move_arm(self):
+        #move the arm to the right angle to drop the note directly into the amp.
+        #arm will be facing downwards
+        #yaw on the arm should be its angle.
         """
-        move the arm from the current intake position to the angle
-        needed for the note to drop into the amplifier
-        probably do some testing for this and the optimal angle.
+        get current arm yaw
+        get desired arm yaw
+        pass the error into the function in the arm
         """
+        #Arm.move_arm_to_angle(curr_yaw, desired_yaw)
         pass
 
     def amp_motor_spin(self):
+        #slowly spin the motors for both the intake and the shooting motors.
+        #won't be at as fast as a speed as shooting.
         """
-        spin the intake motors a bit first
-        then spin the shooter motors but at a lower speed enough to make 
-        the note fall out
+        spin intake motors
+        spin shooting motors
         """
         pass
 
     def return_arm(self):
+        #return the arm to the original position
         """
-        return arm back to intake position.
+        get current arm yaw
         """
-    def auto_shoot(self):
+        #Arm.move_arm_to_angle(curr_yaw, desired_yaw)
+    def autonomous_amp(self):
 
         if self.amp_stage == self.AMP_IDLE:
             self.amp_stage = self.ANGLE_ROBOT

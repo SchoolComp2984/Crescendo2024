@@ -11,4 +11,8 @@ class Climb:
         #basic code to spin the two motors on the climb mechanism.
         self.climb_motor_left.set(speed)
         self.climb_motor_right.set(speed)
+
+"""
+extend two arms up
+"""
     
