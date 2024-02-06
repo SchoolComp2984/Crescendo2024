@@ -1,6 +1,7 @@
 # import math to use trig functions and PI
 import math
 
+from utils.pid import PID
 # create our Drive class that contains methods for various modes of driving
 class Drive:
     def __init__(self, _front_right, _front_left, _back_left, _back_right, _imu):
@@ -13,6 +14,12 @@ class Drive:
 
         # create reference to our imu which is passed into our Drive class from robot.py
         self.imu = _imu
+
+        self.angle_p = 0.1
+        self.angle_i = 0.1
+        self.angle_d = 0.1
+        self.angling_val = 0
+        self.angling_pid = PID(self.angle_p, self.angle_i, self.angle_d, self.angling_val)
 
     # sets the motors on the left side of our robot to the same speed
     def set_left_speed(self, speed):
@@ -30,6 +37,24 @@ class Drive:
     def tank_drive(self, left_joystick, right_joystick):
         self.set_left_speed(left_joystick)
         self.set_right_speed(right_joystick)
+
+    #sets the robot to a specific angle using PIDs and tank drive
+    #NEEDS A LOT OF TESTING AND TINKERING
+    def set_robot_to_angle(self, desired_angle):
+        #current angle of the robot
+        current_angle = self.imu.get_yaw()
+        #make error a var
+        angle_error = abs(desired_angle - current_angle)
+
+        #run error through the pid for adjustments for each motor.
+        self.pid_adjustment = self.angling_pid.steer_pid(angle_error)
+
+        #sets left motors to the adjustment
+        self.set_left_speed(self.pid_adjustment)
+        
+        #sets right motors to the opposite adjustment
+        self.set_right_speed(-self.pid_adjustment)
+
 
     # Evan coded this on Saturday 1/20
     # behaves the same as arcade drive

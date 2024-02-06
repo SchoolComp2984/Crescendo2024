@@ -1,24 +1,53 @@
 from subsystems.arm import Arm
 
-class AutoAmp:
-    def _init__(self):
+# import driver station
+from wpilib import DriverStation
+
+class Auto_Amp:
+    def _init__(self, _arm, _drive, _shooter, _intake, _imu):
         # stages for using the amp.
         #iterating through these stages with a tracker that will move on to the next stage after the current one is finished.
         self.AMP_IDLE = 0
         self.ANGLE_ROBOT = 1
-        self.AMP_SCAN = 2
-        self.CENTER_ROBOT = 3
-        self.DRIVING_ROBOT = 4
-        self.MOVE_ARM = 5
-        self.AMP_MOTOR_SPIN = 6
-        self.RETURN_ARM = 7
-        self.AMP_DONE = 8
+        self.MOVE_ARM = 2
+        self.AMP_MOTOR_SPIN = 3
+        self.RETURN_ARM = 4
+        self.AMP_DONE = 5
         self.amp_stage = self.AMP_IDLE
+
+        # create a reference to our driver station
+        self.driver_station = DriverStation
+
+        #reference to the arm
+        self.arm = _arm
+
+        #reference to the drive
+        self.drive = _drive
+
+        #reference to the shooter
+        self.shooter = _shooter
+        
+        #reference to the intake
+        self.intake = _intake
+
+        self.imu = _imu
 
     def angle_robot(self):
         #angles the robot perpendicularly with the wall so that the back is facing directly at the amp.
         #aligns us fully and all we have to do is then to move left or right.
         #IMPORTANT - DEPENDING ON WHETHER WE ARE RED OR BLUE, THE ANGLE THAT WE TURN WILL CHANGE.
+        #NEEDS WORK
+        alliance_color = self.driver_station.getAlliance()
+        if alliance_color.value() == DriverStation.Alliance.kRed:
+            #if red, turn left 90 degrees
+            self.current_angle = self.imu.get_yaw()
+            
+
+
+        if alliance_color.value() == DriverStation.Alliance.kBlue:
+            pass
+
+
         """
         if red team:
             turn 90 degrees to the left
@@ -26,35 +55,6 @@ class AutoAmp:
             turn 90 degrees to the right
             likely the use of PIDS for turning.
         """
-    def amp_scan(self):
-        #scanning the apriltag on the amp.
-        #looking for coordinates that we can use to allign ourselves with to be squarely in front of the amp.
-        """
-        if we get a raspi value return true
-        else return false
-        """
-        pass
-
-    def center_robot(self):
-        #center the robot with the amp.
-        """
-        if left of amp:
-            move right a certain amount
-        if right of amp:
-            move left a certain amount
-        pids for moving? likely
-        """
-        pass
-
-    def drive_robot(self):
-        """
-        all we need to do is drive the robot down in front of the amp basically
-        probably just run the drive
-        when we are finally close enough to the amp, return true
-        else return false
-        """
-        pass
-
     def move_arm(self):
         #move the arm to the right angle to drop the note directly into the amp.
         #arm will be facing downwards
@@ -89,20 +89,7 @@ class AutoAmp:
 
         elif self.amp_stage == self.ANGLE_ROBOT:
             if self.angle_robot():
-                self.amp_stage = self.AMP_SCAN
-
-        elif self.amp_stage == self.AMP_SCAN:
-            if self.amp_scan():
-                self.amp_stage = self.CENTER_ROBOT
-
-        elif self.amp_stage == self.CENTER_ROBOT:
-            if self.center_robot():
-                self.amp_stage = self.DRIVING_ROBOT
-
-        elif self.amp_stage == self.DRIVING_ROBOT:
-            if self.drive_robot():
-                self.amp_stage == self.MOVE_ARM
-
+                self.amp_stage = self.MOVE_ARM
         elif self.amp_stage == self.MOVE_ARM:
             if self.move_arm():
                 self.amp_stage == self.AMP_MOTOR_SPIN

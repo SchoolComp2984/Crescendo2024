@@ -10,7 +10,7 @@ from subsystems.imu import IMU
 #importing PID for various functions
 from utils import pid
 
-class Shoot:
+class Auto_Shoot:
     def __init__(self, _arm, _drive, _shooter, _intake):
         #different stages of shooting
         self.SHOOTER_IDLE = 0 #idle, not doing anyting

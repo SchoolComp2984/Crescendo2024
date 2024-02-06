@@ -13,10 +13,10 @@ import rev
 from commands.autonomous import Autonomous
 
 #import our shooting
-from commands.auto_shoot import Shoot
+from commands.auto_shoot import Auto_Shoot
 
 #import our amp 
-from commands.auto_amp import AutoAmp
+from commands.auto_amp import Auto_Amp
 
 # import our Drive class that contains various modes of driving and methods for interfacing with our motors
 from subsystems.drive import Drive
@@ -28,7 +28,7 @@ from subsystems.shooter import Shooter
 from subsystems.intake import Intake
 
 #import our climb class
-from subsystems.climber import Climb
+from subsystems.climber import Climber
 
 #import our arm class
 from subsystems.arm import Arm
@@ -90,6 +90,12 @@ class MyRobot(wpilib.TimedRobot):
         #reference to the arm motor with the passed in motors and IMU.
         self.arm = Arm(self.arm_motor_left, self.arm_motor_left, self.arm_imu)
 
+        #create an instance of our Intake class that contains methods for shooting
+        self.intake = Intake(self.intake_motor)
+
+        #create an instance of our Climb class that contains methods for climbing
+        self.climb = Climber(self.climb_motor_left, self.climb_motor_right)
+
         # create an instance of our controller
         # it is an xbox controller at id constants.CONTROLLER_ID, which is 0
         self.controller = wpilib.XboxController(constants.CONTROLLER_ID)
@@ -101,12 +107,11 @@ class MyRobot(wpilib.TimedRobot):
         self.shooter = Shooter(self.shooter_motor)
 
         #create an instance of our amping function
-        #self.auto_amp = AutoAmp(self.shooter_motor)
-        #create an instance of our Intake class that contains methods for shooting
-        #self.intake = Intake(self.intake_motor)
+        self.auto_amp = Auto_Amp(self.arm, self.drive, self.shooter, self.intake, self.imu)
 
-        #create an instance of our Climb class that contains methods for climbing
-        #self.climb = Climb(self.climb_motor_left, self.climb_motor_right)
+        #create an instance for the auto shoot
+        self.auto_shoot = Auto_Shoot(self.arm, self.drive, self.shooter, self.intake)
+        
 
         # variable for what mode of drive we are in
         # toggle between 0 and whatever max number we want to set it to
