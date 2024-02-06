@@ -1,7 +1,7 @@
 #PID
 class PID:
     #intializing the PID by making references to the values that are getting passed in
-    def pid_init(self, kp, ki, kd, val):
+    def __init__(self, kp, ki, kd, val):
         #initializing the three constants in the PID
         #p = proportional constant
         self.kp = kp

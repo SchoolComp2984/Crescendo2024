@@ -30,6 +30,9 @@ from subsystems.intake import Intake
 #import our climb class
 from subsystems.climber import Climb
 
+#import our arm class
+from subsystems.arm import Arm
+
 # import our IMU wrapper class with methods to access different values the IMU provides
 from subsystems.imu import IMU
 
@@ -68,12 +71,12 @@ class MyRobot(wpilib.TimedRobot):
 
 
         #create reference to our Neo motors
-        self.shooter_motor = rev.CANSparkMax(constants.SHOOTER_MOTOR_ID, rev.CANSparkBas)
-        self.intake_motor = rev.CANSparkMax(constants.INTAKE_MOTOR_ID)
+        self.shooter_motor = rev.CANSparkMax(constants.SHOOTER_MOTOR_ID, rev.CANSparkLowLevel.MotorType.kBrushless)
+        self.intake_motor = rev.CANSparkMax(constants.INTAKE_MOTOR_ID, rev.CANSparkLowLevel.MotorType.kBrushless)
 
         #create reference to our climb motors (Falcon 500)
-        #self.climb_motor_left = phoenix5._ctre.WPI_TalonFX(constants.CLIMB_LEFT_ID)
-        #self.climb_motor_right = phoenix5._ctre.WPI_TalonFX(constants.CLIMB_RIGHT_ID)
+        self.climb_motor_left = phoenix5._ctre.WPI_TalonFX(constants.CLIMB_LEFT_ID)
+        self.climb_motor_right = phoenix5._ctre.WPI_TalonFX(constants.CLIMB_RIGHT_ID)
 
         # create a reference to our IMU
         self.imu_motor_controller = phoenix5._ctre.WPI_TalonSRX(constants.IMU_ID)
@@ -82,8 +85,10 @@ class MyRobot(wpilib.TimedRobot):
         #reference to the two arm motors that move it up and down
         self.arm_motor_left = rev.CANSparkMax(constants.ARM_LEFT_ID, rev.CANSparkLowLevel.MotorType.kBrushless)
         self.arm_motor_right = rev.CANSparkMax(constants.ARM_RIGHT_ID, rev.CANSparkLowLevel.MotorType.kBrushless)
-        #self.imu_arm_controller = phoenix5._ctre.WPI_TalonSRX(constants.ARM_IMU_ID)
-        #     self.arm_imu = IMU(self.imu_arm_controller)
+        self.imu_arm_controller = phoenix5._ctre.WPI_TalonSRX(constants.ARM_IMU_ID)
+        self.arm_imu = IMU(self.imu_arm_controller)
+        #reference to the arm motor with the passed in motors and IMU.
+        self.arm = Arm(self.arm_motor_left, self.arm_motor_left, self.arm_imu)
 
         # create an instance of our controller
         # it is an xbox controller at id constants.CONTROLLER_ID, which is 0
@@ -92,8 +97,8 @@ class MyRobot(wpilib.TimedRobot):
         # create an instance of our Drive class that contains methods for different modes of driving
         self.drive = Drive(self.front_right, self.front_left, self.back_left, self.back_right, self.imu)
         
-        #create an instance of our shooting function
-        #self.shoot = Shoot(self.shooter_motor)
+        #create an instance of our shooter
+        self.shooter = Shooter(self.shooter_motor)
 
         #create an instance of our amping function
         #self.auto_amp = AutoAmp(self.shooter_motor)
