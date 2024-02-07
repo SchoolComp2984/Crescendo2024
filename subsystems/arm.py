@@ -34,9 +34,9 @@ class Arm:
     def get_arm_pitch(self):
         return self.arm_imu.get_pitch()
 
-    def move_arm_to_angle(self, _current_angle, _desired_angle):
+    def move_arm_to_angle(self, _desired_angle):
         #references to the current angle that is passsed in and the final angle that we need.
-        self.current_angle = _current_angle
+        self.current_angle = self.arm.imu.get_yaw()
         self.desired_angle = _desired_angle
 
         #use a pid to get the power needed for the motorpower that we need

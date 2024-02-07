@@ -9,6 +9,7 @@ import phoenix5
 #importing rev libraries for our neo motors
 import rev
 
+#IMPORTING OUR COMMANDS
 #import our Autonomous
 from commands.autonomous import Autonomous
 
@@ -18,6 +19,10 @@ from commands.auto_shoot import Auto_Shoot
 #import our amp 
 from commands.auto_amp import Auto_Amp
 
+#import our intake
+from commands.auto_intake import Auto_Intake
+
+#IMPORTING OUR SUBSYSTEMS
 # import our Drive class that contains various modes of driving and methods for interfacing with our motors
 from subsystems.drive import Drive
 
@@ -36,6 +41,7 @@ from subsystems.arm import Arm
 # import our IMU wrapper class with methods to access different values the IMU provides
 from subsystems.imu import IMU
 
+#IMPORTING UTILITIES
 # import our interpolation function used for joysticks
 from utils.math_functions import interpolation_drive
 
@@ -69,7 +75,6 @@ class MyRobot(wpilib.TimedRobot):
         self.front_right.setInverted(True)
         self.back_right.setInverted(True)
 
-
         #create reference to our Neo motors
         self.shooter_motor = rev.CANSparkMax(constants.SHOOTER_MOTOR_ID, rev.CANSparkLowLevel.MotorType.kBrushless)
         self.intake_motor = rev.CANSparkMax(constants.INTAKE_MOTOR_ID, rev.CANSparkLowLevel.MotorType.kBrushless)
@@ -87,8 +92,10 @@ class MyRobot(wpilib.TimedRobot):
         self.arm_motor_right = rev.CANSparkMax(constants.ARM_RIGHT_ID, rev.CANSparkLowLevel.MotorType.kBrushless)
         self.imu_arm_controller = phoenix5._ctre.WPI_TalonSRX(constants.ARM_IMU_ID)
         self.arm_imu = IMU(self.imu_arm_controller)
-        #reference to the arm motor with the passed in motors and IMU.
-        self.arm = Arm(self.arm_motor_left, self.arm_motor_left, self.arm_imu)
+
+        #REFERENCES/INSTANCES OF THE SUBSYSTEMS
+        #instance of the arm class that has methods for moving the arm
+        self.arm = Arm(self.arm_motor_left, self.arm_motor_right, self.arm_imu)
 
         #create an instance of our Intake class that contains methods for shooting
         self.intake = Intake(self.intake_motor)
@@ -96,23 +103,26 @@ class MyRobot(wpilib.TimedRobot):
         #create an instance of our Climb class that contains methods for climbing
         self.climb = Climber(self.climb_motor_left, self.climb_motor_right)
 
-        # create an instance of our controller
-        # it is an xbox controller at id constants.CONTROLLER_ID, which is 0
-        self.controller = wpilib.XboxController(constants.CONTROLLER_ID)
-
         # create an instance of our Drive class that contains methods for different modes of driving
         self.drive = Drive(self.front_right, self.front_left, self.back_left, self.back_right, self.imu)
         
         #create an instance of our shooter
         self.shooter = Shooter(self.shooter_motor)
 
+        # create an instance of our controller
+        # it is an xbox controller at id constants.CONTROLLER_ID, which is 0
+        self.controller = wpilib.XboxController(constants.CONTROLLER_ID)
+
+        #INSTANCES FOR COMMANDS THAT RELY ON THE SUBSYSTEMS
         #create an instance of our amping function
         self.auto_amp = Auto_Amp(self.arm, self.drive, self.shooter, self.intake, self.imu)
+
+        #create an instance of the intake function
+        self.auto_intake = Auto_Intake(self.arm, self.drive, self.intake, self.imu)
 
         #create an instance for the auto shoot
         self.auto_shoot = Auto_Shoot(self.arm, self.drive, self.shooter, self.intake)
         
-
         # variable for what mode of drive we are in
         # toggle between 0 and whatever max number we want to set it to
         self.drive_mode_toggle = 0

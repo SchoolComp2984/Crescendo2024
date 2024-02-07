@@ -2,6 +2,7 @@
 import math
 
 from utils.pid import PID
+
 # create our Drive class that contains methods for various modes of driving
 class Drive:
     def __init__(self, _front_right, _front_left, _back_left, _back_right, _imu):
@@ -44,16 +45,16 @@ class Drive:
         #current angle of the robot
         current_angle = self.imu.get_yaw()
         #make error a var
-        angle_error = abs(desired_angle - current_angle)
+        angle_error = desired_angle - current_angle
 
         #run error through the pid for adjustments for each motor.
-        self.pid_adjustment = self.angling_pid.steer_pid(angle_error)
+        pid_adjustment = self.angling_pid.steer_pid(angle_error)
 
         #sets left motors to the adjustment
-        self.set_left_speed(self.pid_adjustment)
+        self.set_left_speed(pid_adjustment)
         
         #sets right motors to the opposite adjustment
-        self.set_right_speed(-self.pid_adjustment)
+        self.set_right_speed(-pid_adjustment)
 
 
     # Evan coded this on Saturday 1/20

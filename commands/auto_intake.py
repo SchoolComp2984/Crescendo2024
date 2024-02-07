@@ -1,8 +1,8 @@
 #imported intake class to drive intake motors
 from subsystems.intake import Intake
 
-class Intake:
-    def _init__(self):
+class Auto_Intake:
+    def _init__(self, _arm, _drive, _intake, _imu):
         #stages for autonomously intaking
         self.INTAKE_IDLE = 0 #idle, not doing anything
         self.FIND_NOTE_POS = 1 #find the note position

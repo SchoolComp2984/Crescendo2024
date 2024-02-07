@@ -40,22 +40,13 @@ class Auto_Amp:
         alliance_color = self.driver_station.getAlliance()
         if alliance_color.value() == DriverStation.Alliance.kRed:
             #if red, turn left 90 degrees
-            self.current_angle = self.imu.get_yaw()
+            self.drive.set_robot_to_angle(270)
+        elif alliance_color.value() == DriverStation.Alliance.kBlue:
+            self.drive.set_robot_to_angle(90)
             
-
-
-        if alliance_color.value() == DriverStation.Alliance.kBlue:
-            pass
-
-
-        """
-        if red team:
-            turn 90 degrees to the left
-        else:
-            turn 90 degrees to the right
-            likely the use of PIDS for turning.
-        """
     def move_arm(self):
+        current_angle = self.imu.get_yaw()
+        desired_angle = 90 #90 is a placeholder for now, but we can jus
         #move the arm to the right angle to drop the note directly into the amp.
         #arm will be facing downwards
         #yaw on the arm should be its angle.
