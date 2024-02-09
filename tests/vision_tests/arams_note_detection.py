@@ -1,6 +1,8 @@
 # import opencv, library for real-time computer vision
 import cv2
 
+# REMEBER TO WRITE ON GOOGLE DOC NOTES - siena :)
+
 # import numpy and call it np
 # allows for better support with arrays and complex mathematical operations
 import numpy as np
