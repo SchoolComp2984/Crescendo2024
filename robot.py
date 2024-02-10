@@ -110,7 +110,7 @@ class MyRobot(wpilib.TimedRobot):
         self.drive = Drive(self.front_right, self.front_left, self.back_left, self.back_right, self.imu)
         
         #create an instance of our shooter
-        self.shooter = Shooter(self.shooter_motor)
+        self.shooter = Shooter(self.shooter_upper_motor, self.shooter_lower_motor)
 
         # create an instance of our controller
         # it is an xbox controller at id constants.CONTROLLER_ID, which is 0

@@ -43,6 +43,7 @@ class Arm:
         self.arm_motor_pid = self.arm_motor_pid.keep_integral(self.desired_angle - self.current_angle)
         
         #spin the motors based on calculated PID value
+        #test this! motors may spin opposite directions
         self.arm_motor_left.set(self.arm_motor_pid)
         self.arm_motor_right.set(self.arm_motor_pid)
     
