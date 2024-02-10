@@ -68,8 +68,11 @@ class MyRobot(wpilib.TimedRobot):
 
 
         #create reference to our Neo motors
-        #self.shooter_motor = rev.CANSparkMax(constants.SHOOTER_MOTOR_ID, rev.CANSparkLowLevel.MotorType.kBrushless)
-        #self.intake_motor = rev.CANSparkMax(constants.INTAKE_MOTOR_ID, rev.CANSparkLowLevel.MotorType.kBrushless)
+        self.shooter_upper_motor = rev.CANSparkMax(constants.SHOOTER_UPPER_MOTOR_ID, rev.CANSparkLowLevel.MotorType.kBrushless)
+        self.shooter_lower_motor = rev.CANSparkMax(constants.SHOOTER_LOWER_MOTOR_ID, rev.CANSparkLowLevel.MotorType.kBrushless)
+
+        # create reference to our intake motor
+        self.intake_motor = rev.CANSparkMax(constants.INTAKE_MOTOR_ID, rev.CANSparkLowLevel.MotorType.kBrushless)
 
         #create reference to our climb motors (Falcon 500)
         #self.climb_motor_left = phoenix5._ctre.WPI_TalonFX(constants.CLIMB_LEFT_ID)
@@ -82,8 +85,6 @@ class MyRobot(wpilib.TimedRobot):
         #reference to the two arm motors that move it up and down
         self.arm_motor_left = rev.CANSparkMax(constants.ARM_LEFT_ID, rev.CANSparkLowLevel.MotorType.kBrushless)
         self.arm_motor_right = rev.CANSparkMax(constants.ARM_RIGHT_ID, rev.CANSparkLowLevel.MotorType.kBrushless)
-        #self.imu_arm_controller = phoenix5._ctre.WPI_TalonSRX(constants.ARM_IMU_ID)
-        #     self.arm_imu = IMU(self.imu_arm_controller)
 
         # create an instance of our controller
         # it is an xbox controller at id constants.CONTROLLER_ID, which is 0
@@ -93,12 +94,13 @@ class MyRobot(wpilib.TimedRobot):
         self.drive = Drive(self.front_right, self.front_left, self.back_left, self.back_right, self.imu)
         
         #create an instance of our shooting function
-        #self.shoot = Shoot(self.shooter_motor)
+        self.shooter = Shooter(self.shooter_lower_motor, self.shooter_upper_motor)
+
+        #create an instance of our Intake class that contains methods for shooting
+        self.intake = Intake(self.intake_motor)
 
         #create an instance of our amping function
         #self.auto_amp = AutoAmp(self.shooter_motor)
-        #create an instance of our Intake class that contains methods for shooting
-        #self.intake = Intake(self.intake_motor)
 
         #create an instance of our Climb class that contains methods for climbing
         #self.climb = Climb(self.climb_motor_left, self.climb_motor_right)
@@ -121,6 +123,18 @@ class MyRobot(wpilib.TimedRobot):
         
     # ran every 20 ms during teleop
     def teleopPeriodic(self):
+        # test our intake and shooter 2/8 meeting
+        if self.controller.getAButton():
+            self.intake.intake_spin(1)
+
+        elif self.controller.getBButton():
+            self.shooter.shooter_spin(0.7)
+
+        else:
+            self.intake.stop()
+            self.shooter.stop()
+
+
         # get the x and y axis of the left joystick on our controller
         joystick_x = self.controller.getLeftX()
 
