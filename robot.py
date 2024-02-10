@@ -9,15 +9,20 @@ import phoenix5
 #importing rev libraries for our neo motors
 import rev
 
+#IMPORTING OUR COMMANDS
 #import our Autonomous
 from commands.autonomous import Autonomous
 
 #import our shooting
-from commands.auto_shoot import Shoot
+from commands.auto_shoot import Auto_Shoot
 
 #import our amp 
-from commands.auto_amp import AutoAmp
+from commands.auto_amp import Auto_Amp
 
+#import our intake
+from commands.auto_intake import Auto_Intake
+
+#IMPORTING OUR SUBSYSTEMS
 # import our Drive class that contains various modes of driving and methods for interfacing with our motors
 from subsystems.drive import Drive
 
@@ -28,11 +33,15 @@ from subsystems.shooter import Shooter
 from subsystems.intake import Intake
 
 #import our climb class
-from subsystems.climber import Climb
+from subsystems.climber import Climber
+
+#import our arm class
+from subsystems.arm import Arm
 
 # import our IMU wrapper class with methods to access different values the IMU provides
 from subsystems.imu import IMU
 
+#IMPORTING UTILITIES
 # import our interpolation function used for joysticks
 from utils.math_functions import interpolation_drive
 
@@ -66,7 +75,6 @@ class MyRobot(wpilib.TimedRobot):
         self.front_right.setInverted(True)
         self.back_right.setInverted(True)
 
-
         #create reference to our Neo motors
         self.shooter_upper_motor = rev.CANSparkMax(constants.SHOOTER_UPPER_MOTOR_ID, rev.CANSparkLowLevel.MotorType.kBrushless)
         self.shooter_lower_motor = rev.CANSparkMax(constants.SHOOTER_LOWER_MOTOR_ID, rev.CANSparkLowLevel.MotorType.kBrushless)
@@ -75,8 +83,8 @@ class MyRobot(wpilib.TimedRobot):
         self.intake_motor = rev.CANSparkMax(constants.INTAKE_MOTOR_ID, rev.CANSparkLowLevel.MotorType.kBrushless)
 
         #create reference to our climb motors (Falcon 500)
-        #self.climb_motor_left = phoenix5._ctre.WPI_TalonFX(constants.CLIMB_LEFT_ID)
-        #self.climb_motor_right = phoenix5._ctre.WPI_TalonFX(constants.CLIMB_RIGHT_ID)
+        self.climb_motor_left = phoenix5._ctre.WPI_TalonFX(constants.CLIMB_LEFT_ID)
+        self.climb_motor_right = phoenix5._ctre.WPI_TalonFX(constants.CLIMB_RIGHT_ID)
 
         # create a reference to our IMU
         self.imu_motor_controller = phoenix5._ctre.WPI_TalonSRX(constants.IMU_ID)
@@ -85,6 +93,24 @@ class MyRobot(wpilib.TimedRobot):
         #reference to the two arm motors that move it up and down
         self.arm_motor_left = rev.CANSparkMax(constants.ARM_LEFT_ID, rev.CANSparkLowLevel.MotorType.kBrushless)
         self.arm_motor_right = rev.CANSparkMax(constants.ARM_RIGHT_ID, rev.CANSparkLowLevel.MotorType.kBrushless)
+        self.imu_arm_controller = phoenix5._ctre.WPI_TalonSRX(constants.ARM_IMU_ID)
+        self.arm_imu = IMU(self.imu_arm_controller)
+
+        #REFERENCES/INSTANCES OF THE SUBSYSTEMS
+        #instance of the arm class that has methods for moving the arm
+        self.arm = Arm(self.arm_motor_left, self.arm_motor_right, self.arm_imu)
+
+        #create an instance of our Intake class that contains methods for shooting
+        self.intake = Intake(self.intake_motor)
+
+        #create an instance of our Climb class that contains methods for climbing
+        self.climb = Climber(self.climb_motor_left, self.climb_motor_right)
+
+        # create an instance of our Drive class that contains methods for different modes of driving
+        self.drive = Drive(self.front_right, self.front_left, self.back_left, self.back_right, self.imu)
+        
+        #create an instance of our shooter
+        self.shooter = Shooter(self.shooter_motor)
 
         # create an instance of our controller
         # it is an xbox controller at id constants.CONTROLLER_ID, which is 0
@@ -101,10 +127,12 @@ class MyRobot(wpilib.TimedRobot):
 
         #create an instance of our amping function
         #self.auto_amp = AutoAmp(self.shooter_motor)
+        #create an instance of our Intake class that contains methods for shooting
+        #self.intake = Intake(self.intake_motor)
 
-        #create an instance of our Climb class that contains methods for climbing
-        #self.climb = Climb(self.climb_motor_left, self.climb_motor_right)
-
+        #create an instance for the auto shoot
+        self.auto_shoot = Auto_Shoot(self.arm, self.drive, self.shooter, self.intake)
+        
         # variable for what mode of drive we are in
         # toggle between 0 and whatever max number we want to set it to
         self.drive_mode_toggle = 0

@@ -1,11 +1,11 @@
 from subsystems.imu import IMU
-from utils import pid
+from utils.pid import PID
 import phoenix5
 import rev
 
 
 class Arm:
-    def __init__(self, _arm_motor_left, _arm_motor_right, _arm_imu, _pid: pid.PID):
+    def __init__(self, _arm_motor_left, _arm_motor_right, _arm_imu):
         self.arm_motor_left = _arm_motor_left
         self.arm_motor_right = _arm_motor_right
         self.arm_imu = _arm_imu
@@ -19,8 +19,7 @@ class Arm:
         self.arm_val = 0
 
         #setting up the PIDS for the arm
-        self.arm_motor_pid = pid.PID()
-        self.arm_motor_pid.set_pid(self.arm_p, self.arm_i, self.arm_d, self.arm_val)
+        self.arm_motor_pid = PID(self.arm_p, self.arm_i, self.arm_d, self.arm_val)
     
     #i believe that if we are to put an IMU on the arm, it would be best to have it lay on the horizontal side of the arm so that we can just use the yaw to measure the angle.
     #function to reset yaw of the arm IMU
@@ -31,12 +30,13 @@ class Arm:
     def get_arm_yaw(self):
         return self.arm_imu.get_yaw()
 
+    # returns the pitch of the arm (vertical rotation), which we will probably want to use instead of yaw depending on how we mount the IMU
     def get_arm_pitch(self):
         return self.arm_imu.get_pitch()
 
-    def move_arm_to_angle(self, _current_angle, _desired_angle):
+    def move_arm_to_angle(self, _desired_angle):
         #references to the current angle that is passsed in and the final angle that we need.
-        self.current_angle = _current_angle
+        self.current_angle = self.arm.imu.get_yaw()
         self.desired_angle = _desired_angle
 
         #use a pid to get the power needed for the motorpower that we need
