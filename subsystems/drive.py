@@ -1,6 +1,7 @@
 # import math to use trig functions and PI
 import math
 
+#importing the PID for steering purposes.
 from utils.pid import PID
 
 # create our Drive class that contains methods for various modes of driving
@@ -16,6 +17,8 @@ class Drive:
         # create reference to our imu which is passed into our Drive class from robot.py
         self.imu = _imu
 
+        #initiating PID for the steering function, values are placeholders
+        #mainly used for turning the robot to a certain angle.
         self.angle_p = 0.1
         self.angle_i = 0.1
         self.angle_d = 0.1
