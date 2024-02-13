@@ -1,8 +1,12 @@
-from subsystems.imu import IMU
-from utils.pid import PID
+#importing libraries
 import phoenix5
 import rev
 
+#importing IMU function to use the yaw of the arm for moving it to a certain angle
+from subsystems.imu import IMU
+
+#importing the PID for moving the arm to the right place.
+from utils.pid import PID
 
 class Arm:
     def __init__(self, _arm_motor_left, _arm_motor_right, _arm_imu):
