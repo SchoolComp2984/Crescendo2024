@@ -1,6 +1,12 @@
+#importing the arm so we can use the functions to move the arm up and down.
 from subsystems.arm import Arm
 
-# import driver station
+#import intake so we can spin the intake motors to feed the note into the shooter motor
+from subsystems.intake import intake
+#import shooter so we can spin the shooter motors to move the note out
+from subsystems.shooter import Shoot
+
+# import driver station to get the alliance color that we're on.
 from wpilib import DriverStation
 
 class Auto_Amp:
@@ -74,7 +80,7 @@ class Auto_Amp:
         """
         #Arm.move_arm_to_angle(curr_yaw, desired_yaw)
     def autonomous_amp(self):
-
+        #status tracker that goes through all the different steps of amping
         if self.amp_stage == self.AMP_IDLE:
             self.amp_stage = self.ANGLE_ROBOT
 

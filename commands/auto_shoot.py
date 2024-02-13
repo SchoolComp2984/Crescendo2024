@@ -125,7 +125,7 @@ class Auto_Shoot:
 
     #spins the shooter motor before for a second before we feed the note in.
     def spinning_shooter_motor(self):
-        #starts spinning the shooter motors
+        #starts spinning the shooter motors for one second
         self.shooter.shooter_spin(1)
 
         #timer to check if it's been a second
@@ -140,7 +140,10 @@ class Auto_Shoot:
         self.intake.intake_spin(1)
         
         #if a second has passed, it will have most likely shot, so we can move on to the next step
-        if self.feeding_spin_start_time + 1 < self.timer.getFPGATimestamp(): return True
+        if self.feeding_spin_start_time + 1 < self.timer.getFPGATimestamp(): 
+            #stops shooter motors
+            self.shooter.stop()
+            return True
 
     def return_arm():
         """

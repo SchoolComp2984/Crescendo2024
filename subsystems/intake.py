@@ -11,4 +11,5 @@ class Intake:
         self.intake_motor.set(-speed)
 
     def stop(self):
+        #stops the intake motors
         self.intake_motor.set(0)

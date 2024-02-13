@@ -14,6 +14,7 @@ class Shooter:
         self.shooter_lower_motor.set(speed)
         self.shooter_upper_motor.set(-speed)
 
+    #stops the shooting motors.
     def stop(self):
         self.shooter_lower_motor.set(0)
         self.shooter_upper_motor.set(0)
