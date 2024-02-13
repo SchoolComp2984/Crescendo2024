@@ -9,7 +9,9 @@ from subsystems.imu import IMU
 from utils.pid import PID
 
 class Arm:
+    #initiating the arm values and stuff
     def __init__(self, _arm_motor_left, _arm_motor_right, _arm_imu):
+        #references to the arm motors and the imu that were passed in.
         self.arm_motor_left = _arm_motor_left
         self.arm_motor_right = _arm_motor_right
         self.arm_imu = _arm_imu
