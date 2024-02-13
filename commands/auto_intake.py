@@ -14,6 +14,18 @@ class Auto_Intake:
         self.INTAKE_DONE = 7 #done with intaking
         self.intake_stage = self.INTAKE_IDLE
 
+        #reference the arm
+        self.arm = _arm
+
+        #reference the drive
+        self.drive = _drive
+
+        #refence the intake
+        self.intake = _intake
+
+        #reference the imu
+        self.imu = _imu
+
     def scan_for_note(self):
         """
         scan for the note
