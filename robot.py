@@ -196,6 +196,16 @@ class MyRobot(wpilib.TimedRobot):
             #if the Y button is pressed, we go into field oriented drive
             self.drive.mecanum_drive_robot_oriented(joystick_x, joystick_y, joystick_turning)
 
+        #testing the turning to a certain angle
+        if self.controller.getLeftTriggerAxis() == 1:
+            self.drive.set_robot_to_angle(90)
+
+        elif self.controller.getRightTriggerAxis() == 1:
+            self.drive.set_robot_to_angle(270)
+
+        elif self.controller.getXButton():
+            self.drive.set_robot_to_angle(0)
+            
         #if the left bumper is pressed, we shoot.
         #if self.controller.getLeftBumperPressed(): self.shoot.autonomous_shoot()
         
@@ -214,4 +224,4 @@ if __name__ == "__main__":
     wpilib.run(MyRobot)
 
 # the command that deploys our code to our robot:
-# py -3 -m robotpy deploy
+#py -3 -m robotpy deploy
