@@ -25,6 +25,12 @@ class Auto_Shoot:
         self.SHOOTER_DONE = 9 #done with everything
         self.shooter_stage = self.SHOOTER_IDLE #set the current state to the idle state
 
+
+        # intermediate variables that we are using between stages in our state machine
+        self.april_tag_x = None
+        self.arm_angle = None
+
+
         #reference to the arm that we passed in
         self.arm = _arm
         
