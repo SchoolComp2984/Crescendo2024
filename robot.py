@@ -132,10 +132,6 @@ class MyRobot(wpilib.TimedRobot):
 
         #create an instance for the auto shoot
         self.auto_shoot = Auto_Shoot(self.arm, self.drive, self.shooter, self.intake)
-        
-        # variable for what mode of drive we are in
-        # toggle between 0 and whatever max number we want to set it to
-        self.drive_mode_toggle = 0
 
     # setup before our robot transitions to autonomous
     def autonomousInit(self):
@@ -174,27 +170,12 @@ class MyRobot(wpilib.TimedRobot):
         # get the x axis of the right joystick used for turning the robot in place
         joystick_turning = self.controller.getRightX()
 
-        #Calling the method for the drive mode with a toggle that will switch between driving modes
-        if self.controller.getAButton(): self.drive_mode_toggle = 0
-        elif self.controller.getBButton(): self.drive_mode_toggle = 1
-        elif self.controller.getYButton(): self.drive_mode_toggle = 2
-
-        #Driving modes that will spin the motors
-        #We pass in the joystick values for the drive controls
+        # run field oriented drive based on joystick values
+        self.drive.field_oriented_drive(joystick_x, joystick_y, joystick_turning)
         
-        if self.drive_mode_toggle == 0:
-            #if the A button is pressed, we are in robot oriented drive
-            self.drive.field_oriented_drive(joystick_x, joystick_y, joystick_turning)
-            if self.controller.getBackButton():
-                self.imu.reset_yaw()
-
-        elif self.drive_mode_toggle == 1:
-            #if the B button is pressed, we go into Evan's drive
-            self.drive.evans_drive(joystick_x, joystick_y)
-            
-        elif self.drive_mode_toggle == 2:
-            #if the Y button is pressed, we go into field oriented drive
-            self.drive.mecanum_drive_robot_oriented(joystick_x, joystick_y, joystick_turning)
+        # if we click the back button on our controller, reset the "zero" position on the yaw to our current angle
+        if self.controller.getBackButton():
+            self.imu.reset_yaw()
 
         #testing the turning to a certain angle
         if self.controller.getLeftTriggerAxis() == 1:
