@@ -3,12 +3,7 @@ from subsystems.drive import Drive
 from subsystems.shooter import Shooter
 from subsystems.intake import Intake
 
+#switches on robot that change values to run different autonomous codes for each.
 class Autonomous:
-    pass
-"""
-possibilities:
-use of sensors to sense apriltags to move and adjust the robot into the right spot for whatever we're doing
-use sensors to avoid collisions with other obstacles (robots, notes on ground)
-maybe hard code three different variations depending on what spot we're in and set it up before the round starts
-stages maybe - moving stage, shooting stage, etc
-"""
+    def __init__(self):
+        pass

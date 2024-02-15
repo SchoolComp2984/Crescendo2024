@@ -9,9 +9,20 @@ import phoenix5
 #importing rev libraries for our neo motors
 import rev
 
+#IMPORTING OUR COMMANDS
 #import our Autonomous
 from commands.autonomous import Autonomous
 
+#import our shooting
+from commands.auto_shoot import Auto_Shoot
+
+#import our amp 
+from commands.auto_amp import Auto_Amp
+
+#import our intake
+from commands.auto_intake import Auto_Intake
+
+#IMPORTING OUR SUBSYSTEMS
 # import our Drive class that contains various modes of driving and methods for interfacing with our motors
 from subsystems.drive import Drive
 
@@ -22,11 +33,15 @@ from subsystems.shooter import Shooter
 from subsystems.intake import Intake
 
 #import our climb class
-from subsystems.climb import Climb
+from subsystems.climber import Climber
+
+#import our arm class
+from subsystems.arm import Arm
 
 # import our IMU wrapper class with methods to access different values the IMU provides
 from subsystems.imu import IMU
 
+#IMPORTING UTILITIES
 # import our interpolation function used for joysticks
 from utils.math_functions import interpolation_drive
 
@@ -61,8 +76,11 @@ class MyRobot(wpilib.TimedRobot):
         self.back_right.setInverted(True)
 
         #create reference to our Neo motors
-        self.shooter_motor = rev.CANSparkMax(constants.SHOOTER_MOTOR_ID, rev.CANSparkMaxLowLevel.MotorType.kBrushless)
-        self.intake_motor = rev.CANSparkMax(constants.INTAKE_MOTOR_ID, rev.CANSparkMaxLowLevel.MotorType.kBrushless)
+        self.shooter_upper_motor = rev.CANSparkMax(constants.SHOOTER_UPPER_MOTOR_ID, rev.CANSparkLowLevel.MotorType.kBrushless)
+        self.shooter_lower_motor = rev.CANSparkMax(constants.SHOOTER_LOWER_MOTOR_ID, rev.CANSparkLowLevel.MotorType.kBrushless)
+
+        # create reference to our intake motor
+        self.intake_motor = rev.CANSparkMax(constants.INTAKE_MOTOR_ID, rev.CANSparkLowLevel.MotorType.kBrushless)
 
         #create reference to our climb motors (Falcon 500)
         self.climb_motor_left = phoenix5._ctre.WPI_TalonFX(constants.CLIMB_LEFT_ID)
@@ -72,6 +90,28 @@ class MyRobot(wpilib.TimedRobot):
         self.imu_motor_controller = phoenix5._ctre.WPI_TalonSRX(constants.IMU_ID)
         self.imu = IMU(self.imu_motor_controller)
 
+        #reference to the two arm motors that move it up and down
+        self.arm_motor_left = rev.CANSparkMax(constants.ARM_LEFT_ID, rev.CANSparkLowLevel.MotorType.kBrushless)
+        self.arm_motor_right = rev.CANSparkMax(constants.ARM_RIGHT_ID, rev.CANSparkLowLevel.MotorType.kBrushless)
+        self.imu_arm_controller = phoenix5._ctre.WPI_TalonSRX(constants.ARM_IMU_ID)
+        self.arm_imu = IMU(self.imu_arm_controller)
+
+        #REFERENCES/INSTANCES OF THE SUBSYSTEMS
+        #instance of the arm class that has methods for moving the arm
+        self.arm = Arm(self.arm_motor_left, self.arm_motor_right, self.arm_imu)
+
+        #create an instance of our Intake class that contains methods for shooting
+        self.intake = Intake(self.intake_motor)
+
+        #create an instance of our Climb class that contains methods for climbing
+        self.climb = Climber(self.climb_motor_left, self.climb_motor_right)
+
+        # create an instance of our Drive class that contains methods for different modes of driving
+        self.drive = Drive(self.front_right, self.front_left, self.back_left, self.back_right, self.imu)
+        
+        #create an instance of our shooter
+        self.shooter = Shooter(self.shooter_upper_motor, self.shooter_lower_motor)
+
         # create an instance of our controller
         # it is an xbox controller at id constants.CONTROLLER_ID, which is 0
         self.controller = wpilib.XboxController(constants.CONTROLLER_ID)
@@ -79,18 +119,19 @@ class MyRobot(wpilib.TimedRobot):
         # create an instance of our Drive class that contains methods for different modes of driving
         self.drive = Drive(self.front_right, self.front_left, self.back_left, self.back_right, self.imu)
         
-        #create an instance of our Shooter class that contains methods for shooting
-        self.shoot = Shooter(self.shooter_motor)
+        #create an instance of our shooting function
+        self.shooter = Shooter(self.shooter_lower_motor, self.shooter_upper_motor)
 
         #create an instance of our Intake class that contains methods for shooting
         self.intake = Intake(self.intake_motor)
 
-        #create an instance of our Climb class that contains methods for climbing
-        self.climb = Climb(self.climb_motor_left, self.climb_motor_right)
+        #create an instance of our amping function
+        #self.auto_amp = AutoAmp(self.shooter_motor)
+        #create an instance of our Intake class that contains methods for shooting
+        #self.intake = Intake(self.intake_motor)
 
-        # variable for what mode of drive we are in
-        # toggle between 0 and whatever max number we want to set it to
-        self.drive_mode_toggle = 0
+        #create an instance for the auto shoot
+        self.auto_shoot = Auto_Shoot(self.arm, self.drive, self.shooter, self.intake)
 
     # setup before our robot transitions to autonomous
     def autonomousInit(self):
@@ -106,6 +147,18 @@ class MyRobot(wpilib.TimedRobot):
         
     # ran every 20 ms during teleop
     def teleopPeriodic(self):
+        # test our intake and shooter 2/8 meeting
+        if self.controller.getAButton():
+            self.intake.intake_spin(1)
+
+        elif self.controller.getBButton():
+            self.shooter.shooter_spin(0.7)
+
+        else:
+            self.intake.stop()
+            self.shooter.stop()
+
+
         # get the x and y axis of the left joystick on our controller
         joystick_x = self.controller.getLeftX()
 
@@ -117,24 +170,28 @@ class MyRobot(wpilib.TimedRobot):
         # get the x axis of the right joystick used for turning the robot in place
         joystick_turning = self.controller.getRightX()
 
-        #Calling the method for the drive mode with a toggle that will switch between driving modes
-        if self.controller.getAButton(): drive_mode_toggle = 0
-        elif self.controller.getBButton(): drive_mode_toggle = 1
-        elif self.controller.getYButton(): drive_mode_toggle = 2
+        # run field oriented drive based on joystick values
+        self.drive.field_oriented_drive(joystick_x, joystick_y, joystick_turning)
+        
+        # if we click the back button on our controller, reset the "zero" position on the yaw to our current angle
+        if self.controller.getBackButton():
+            self.imu.reset_yaw()
 
-        #Driving modes that will spin the motors
-        #We pass in the joystick values for the drive controls
-        if self.drive_mode_toggle == 0:
-            #if the A button is pressed, we are in robot oriented drive
-            self.drive.mecanum_drive_robot_oriented(joystick_x, joystick_y, joystick_turning)
-        elif self.drive_mode_toggle == 1:
-            #if the B button is pressed, we go into Evan's drive
-            self.drive.evans_drive(joystick_x, joystick_y)
-        elif self.drive_mode_toggle == 2:
-            #if the Y button is pressed, we go into field oriented drive
-            self.drive.field_oriented_drive(joystick_x, joystick_y, joystick_turning)
-            if(self.controller.getBackButton()): self.imu.reset_yaw
+        #testing the turning to a certain angle
+        if self.controller.getLeftTriggerAxis() == 1:
+            self.drive.set_robot_to_angle(90)
 
+        elif self.controller.getRightTriggerAxis() == 1:
+            self.drive.set_robot_to_angle(270)
+
+        elif self.controller.getXButton():
+            self.drive.set_robot_to_angle(0)
+            
+        #if the left bumper is pressed, we shoot.
+        #if self.controller.getLeftBumperPressed(): self.shoot.autonomous_shoot()
+        
+        #if the right bumber is pressed, we do the amp
+        #if self.controller.getRightBumperPressed(): self.auto_amp.autonomous_amp()
 
         # print out the joystick values
         # mainly used for debugging where we realized the y axis on the lefy joystick was inverted
@@ -148,4 +205,4 @@ if __name__ == "__main__":
     wpilib.run(MyRobot)
 
 # the command that deploys our code to our robot:
-# py -3 -m robotpy deploy
+#py -3 -m robotpy deploy

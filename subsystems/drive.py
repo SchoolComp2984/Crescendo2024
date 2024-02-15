@@ -1,6 +1,9 @@
 # import math to use trig functions and PI
 import math
 
+#importing the PID for steering purposes.
+from utils.pid import PID
+
 # create our Drive class that contains methods for various modes of driving
 class Drive:
     def __init__(self, _front_right, _front_left, _back_left, _back_right, _imu):
@@ -14,6 +17,14 @@ class Drive:
         # create reference to our imu which is passed into our Drive class from robot.py
         self.imu = _imu
 
+        #initiating PID for the steering function, values are placeholders
+        #mainly used for turning the robot to a certain angle.
+        self.angle_p = 0.1
+        self.angle_i = 0.1
+        self.angle_d = 0.1
+        self.angling_val = 0
+        self.angling_pid = PID(self.angle_p, self.angle_i, self.angle_d, self.angling_val)
+
     # sets the motors on the left side of our robot to the same speed
     def set_left_speed(self, speed):
         self.front_left.set(speed)
@@ -23,6 +34,30 @@ class Drive:
     def set_right_speed(self, speed):
         self.front_right.set(speed)
         self.back_right.set(speed)
+
+    #tank drive
+    #left joystick sets speed of left motors, right joystick sets speed of right motors
+    #primarily included just for turning the robot during shooting.
+    def tank_drive(self, left_joystick, right_joystick):
+        self.set_left_speed(left_joystick)
+        self.set_right_speed(right_joystick)
+
+    #sets the robot to a specific angle using PIDs and tank drive
+    #NEEDS A LOT OF TESTING AND TINKERING
+    def set_robot_to_angle(self, desired_angle):
+        #current angle of the robot
+        current_angle = self.imu.get_yaw()
+        #make error a var
+        angle_error = desired_angle - current_angle
+
+        #run error through the pid for adjustments for each motor.
+        pid_adjustment = self.angling_pid.steer_pid(angle_error)
+
+        #sets left motors to the adjustment
+        self.set_left_speed(pid_adjustment)
+        
+        #sets right motors to the opposite adjustment
+        self.set_right_speed(-pid_adjustment)
 
 
     # Evan coded this on Saturday 1/20
@@ -70,7 +105,7 @@ class Drive:
         back_right_speed /= scale_back_to_range
 
         # multiply all motor speeds by speed multiplier
-        speed_multiplier = 0.1
+        speed_multiplier = 0.5
         front_right_speed *= speed_multiplier
         front_left_speed *= speed_multiplier
         back_left_speed *= speed_multiplier
@@ -103,7 +138,7 @@ class Drive:
 
         #going side to side has friction so multiply by 1.1 to account for that
         joystick_x = joystick_x*1.1
-        
+
         #caluculates the speed that each motor needs to have and makes sure that it's between [-1,1]
         maximum_value_of_joysticks = abs(joystick_x)+abs(joystick_y)+abs(rotation)
         scale_factor = max(maximum_value_of_joysticks,1)
@@ -113,7 +148,7 @@ class Drive:
         front_right_speed = (rotated_y-rotated_x-rotation)/scale_factor
         
         #since we're testing the robot inside, we don't want it to go full speed, so the motors are multiplied by a decimal
-        multiplier = 0.3
+        multiplier = 0.6
         front_left_speed = front_left_speed*multiplier
         front_right_speed = front_right_speed*multiplier
         back_left_speed = back_left_speed*multiplier
