@@ -29,6 +29,9 @@ from subsystems.drive import Drive
 #import our Shooter class
 from subsystems.shooter import Shooter
 
+#import our networking
+from subsystems.netowrking import NetworkReceiver
+
 #import our intake class
 from subsystems.intake import Intake
 
@@ -108,6 +111,8 @@ class MyRobot(wpilib.TimedRobot):
 
         # create an instance of our Drive class that contains methods for different modes of driving
         self.drive = Drive(self.front_right, self.front_left, self.back_left, self.back_right, self.imu)
+
+        self.networking = NetworkReceiver()
         
         #create an instance of our shooter
         self.shooter = Shooter(self.shooter_upper_motor, self.shooter_lower_motor)
@@ -122,16 +127,14 @@ class MyRobot(wpilib.TimedRobot):
         #create an instance of our shooting function
         self.shooter = Shooter(self.shooter_lower_motor, self.shooter_upper_motor)
 
-        #create an instance of our Intake class that contains methods for shooting
-        self.intake = Intake(self.intake_motor)
-
         #create an instance of our amping function
-        #self.auto_amp = AutoAmp(self.shooter_motor)
-        #create an instance of our Intake class that contains methods for shooting
-        #self.intake = Intake(self.intake_motor)
+        self.auto_amp = Auto_Amp(self.arm, self.drive, self.shooter, self.intake, self.imu, self.networking)
 
         #create an instance for the auto shoot
-        self.auto_shoot = Auto_Shoot(self.arm, self.drive, self.shooter, self.intake)
+        self.auto_shoot = Auto_Shoot(self.arm, self.drive, self.shooter, self.intake, self.imu, self.networking)
+
+        #instance for the auto intake
+        self.auto_intake = Auto_Intake(self.arm, self.drive, self.intake, self.imu, self.networking)
 
     # setup before our robot transitions to autonomous
     def autonomousInit(self):

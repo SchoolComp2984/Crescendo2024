@@ -16,16 +16,18 @@ class NetworkReciever():
         # store the x and y positions of the apriltag as variables and set them to None if the data cannot be found
         apriltag_x = self.dashboard.getNumber("apriltag_x", None)
         apriltag_y = self.dashboard.getNumber("apriltag_y", None)
+        apriltag_distance = self.dashboard.getNumber("apriltag_distance", None)
 
         # return the position in an array
-        return [apriltag_x, apriltag_y]
+        return [apriltag_x, apriltag_y, apriltag_distance]
     
     # method to retrieve the x and y positions of the note from the camera
-    # same as apriltags where (0, 0) is in the center of the screen
+    # same as apriltags where (0, 0) is in th center of the screen
     # we can use the same fact to aim the robot towards the note, which is useful for auto intake
     def get_note_data(self):
         note_x = self.dashboard.getNumber("note_x", None)
         note_y = self.dashboard.getNumber("note_y", None)
+        note_distance = self.dashboard.getNumber("note_distance", None)
 
         # return the x and y positions of the note in an array
-        return [note_x, note_y]
+        return [note_x, note_y, note_distance]

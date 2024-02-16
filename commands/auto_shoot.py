@@ -9,9 +9,8 @@ from subsystems.imu import IMU
 
 #importing PID for various functions
 from utils import pid
-
 class Auto_Shoot:
-    def __init__(self, _arm, _drive, _shooter, _intake):
+    def __init__(self, _arm, _drive, _shooter, _intake, _imu, _networking):
         #different stages of shooting
         self.SHOOTER_IDLE = 0 #idle, not doing anyting
         self.ANGLE_SCAN = 1 #scan the apriltag on the speaker, get the angle that it is at
@@ -30,7 +29,6 @@ class Auto_Shoot:
         self.april_tag_x = None
         self.arm_angle = None
 
-
         #reference to the arm that we passed in
         self.arm = _arm
         
@@ -42,6 +40,12 @@ class Auto_Shoot:
 
         #reference to the intake so we can use the intake motors
         self.intake = _intake
+
+        #reference to the imu
+        self.imu = _imu
+
+        #reference to networking
+        self.networking = _networking
         
         #initializing pid for shooter
         #zeroes are current placeholders that will be modified after tuning
@@ -56,53 +60,30 @@ class Auto_Shoot:
         self.shooter_spin_start_time = 0.0
         self.feeding_spin_start_time = 0.0
 
-    #scans for the apriltag on the speaker so we can use the data values from it
-    def scan_for_april_tags(self):
-        """
-        get raspi april tag data
-        if we find an april tag:
-            return true
-        else:
-            return false
-        """
-        
-        pass
+        #intermediate variable for apriltag data
+        self.apriltag_data = None
+        self.apriltag_distance = None
 
+    #scans the apriltag for the apriltag data
     #turns the robot to center it with the speaker apriltag.
-    def turn_robot(self):
-        #placeholder for the x of the apriltag from the raspi camera.
-        #robot will turn until x is zero.
-        april_tag_x = 10
+    def center_robot(self):
+        self.apriltag_data = self.networking.get_apriltag_data()
 
-        #if the x value is close enough to zero, return true
-        # a bit of leeway should be fine.
-        if abs(april_tag_x) < 3: return True
-
-        #if the tag is to the right of the robot
-        if april_tag_x > 0: 
-            #should make the robot turn right by making the left wheels move forwards only.
-            self.drive.tank_drive(.5, 0)
-
-        #if the tag is to the left of the robot
-        elif april_tag_x < 0:
-            #should make the robot turn left by making only the right wheels move forwards
-            self.drive.tank_drive(0, .5)
-
-        #if the above if statement returning true isn't called, False is returned
-        #basically if we're not in the right position, returns false to call the function again
-        return False
-    
+        if len(self.apriltag_data) is not None:
+            april_tag_x = self.apriltag_data[0]
+            if abs(self.note_x) < 3: return True
+            elif self.note_x < -3: self.drive.tank_drive(-.5, .5)
+            elif self.note_x > 3: self.drive.tank_drive(.5, -.5)
+        else: return False
     #raspi scans distance between bot and speaker(apriltag)
-    def distance_scan(self):
-        """
-        get raspi april tag data
-        if distance found:
-            return true
-        else 
-            return false
-        """
-        pass
-
+    def get_distance(self):
+        self.apriltag_data = None
+        self.apriltag_data = self.networking.get_apriltag_data()
+        if len(self.apriltag_data) is not None:
+            self.apriltag_distance = self.apriltag_data[2]
+            return True
+        else: return False
+        
     def arm_angle_calc(self):
         #UNITS ARE IN INCHES
         #distance from raspi camera to apriltag

@@ -1,16 +1,8 @@
-#importing the arm so we can use the functions to move the arm up and down.
-from subsystems.arm import Arm
-
-#import intake so we can spin the intake motors to feed the note into the shooter motor
-from subsystems.intake import intake
-#import shooter so we can spin the shooter motors to move the note out
-from subsystems.shooter import Shoot
-
 # import driver station to get the alliance color that we're on.
 from wpilib import DriverStation
 
 class Auto_Amp:
-    def _init__(self, _arm, _drive, _shooter, _intake, _imu):
+    def _init__(self, _arm, _drive, _shooter, _intake, _imu, _networking):
         # stages for using the amp.
         #iterating through these stages with a tracker that will move on to the next stage after the current one is finished.
         self.AMP_IDLE = 0
@@ -36,26 +28,43 @@ class Auto_Amp:
         #reference to the intake
         self.intake = _intake
 
+        #referencing imu
         self.imu = _imu
+
+        #referencing networking
+        self.networking = _networking
+
+        #intermediate variable for apriltag data
+        self.apriltag_data = None
 
     def angle_robot(self):
         #angles the robot perpendicularly with the wall so that the back is facing directly at the amp.
         #aligns us fully and all we have to do is then to move left or right.
         #IMPORTANT - DEPENDING ON WHETHER WE ARE RED OR BLUE, THE ANGLE THAT WE TURN WILL CHANGE.
         #NEEDS WORK
+        #gets the alliance color through driver station data
         alliance_color = self.driver_station.getAlliance()
         if alliance_color.value() == DriverStation.Alliance.kRed:
             #if red, turn left 90 degrees
             self.drive.set_robot_to_angle(270)
         elif alliance_color.value() == DriverStation.Alliance.kBlue:
+            #if blue turn right 90 degrees
             self.drive.set_robot_to_angle(90)
-            
+
+        #get apriltag data and put into an array
+        self.apriltag_data = self.networking.get_apriltag_data()
+
+        #get X value of apriltag
+        self.apriltag_x = self.apriltag_data[0]
+
+        #if the X value is close enough to the center, we're good.
+        if abs(self.apriltag_x) < 10: return True
+
+        #x value on left, move right
+        #x value on right, move left
+        #the camera is gonna be facing backwards so the directions are swapped.
+
     def move_arm(self):
-        current_angle = self.imu.get_yaw()
-        desired_angle = 90 #90 is a placeholder for now, but we can jus
-        #move the arm to the right angle to drop the note directly into the amp.
-        #arm will be facing downwards
-        #yaw on the arm should be its angle.
         """
         get current arm yaw
         get desired arm yaw
@@ -65,12 +74,10 @@ class Auto_Amp:
         pass
 
     def amp_motor_spin(self):
-        #slowly spin the motors for both the intake and the shooting motors.
-        #won't be at as fast as a speed as shooting.
-        """
-        spin intake motors
-        spin shooting motors
-        """
+        #spin both motors but slower.
+        self.intake.intake_spin(.3)
+        self.shooter.shooter_spin(.5)
+        
         pass
 
     def return_arm(self):
