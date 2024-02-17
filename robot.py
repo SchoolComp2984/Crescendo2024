@@ -94,8 +94,8 @@ class MyRobot(wpilib.TimedRobot):
         self.imu = IMU(self.imu_motor_controller)
 
         #reference to the two arm motors that move it up and down
-        self.arm_motor_left = rev.CANSparkMax(constants.ARM_LEFT_ID, rev.CANSparkLowLevel.MotorType.kBrushless)
-        self.arm_motor_right = rev.CANSparkMax(constants.ARM_RIGHT_ID, rev.CANSparkLowLevel.MotorType.kBrushless)
+        self.arm_motor_left = phoenix5._ctre.WPI_TalonFX(constants.ARM_LEFT_ID)
+        self.arm_motor_right = phoenix5._ctre.WPI_TalonFX(constants.ARM_RIGHT_ID)
         self.imu_arm_controller = phoenix5._ctre.WPI_TalonSRX(constants.ARM_IMU_ID)
         self.arm_imu = IMU(self.imu_arm_controller)
 
