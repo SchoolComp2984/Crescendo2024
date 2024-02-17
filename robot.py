@@ -136,6 +136,9 @@ class MyRobot(wpilib.TimedRobot):
         #instance for the auto intake
         self.auto_intake = Auto_Intake(self.arm, self.drive, self.intake, self.imu, self.networking)
 
+        # override variables to prevent spinning the same motors in multiple places in the code
+        self.drive_override = False
+
     # setup before our robot transitions to autonomous
     def autonomousInit(self):
         pass
@@ -161,34 +164,40 @@ class MyRobot(wpilib.TimedRobot):
             self.intake.stop()
             self.shooter.stop()
 
-
-        # get the x and y axis of the left joystick on our controller
-        joystick_x = self.controller.getLeftX()
-
-        # rember that y joystick is inverted
-        # multiply by -1
-        # "up" on the joystick is -1 and "down" is 1
-        joystick_y = self.controller.getLeftY() * -1
-
-        # get the x axis of the right joystick used for turning the robot in place
-        joystick_turning = self.controller.getRightX()
-
-        # run field oriented drive based on joystick values
-        self.drive.field_oriented_drive(joystick_x, joystick_y, joystick_turning)
         
-        # if we click the back button on our controller, reset the "zero" position on the yaw to our current angle
-        if self.controller.getBackButton():
-            self.imu.reset_yaw()
 
-        #testing the turning to a certain angle
-        if self.controller.getLeftTriggerAxis() == 1:
-            self.drive.set_robot_to_angle(90)
+        # running drive code
+        # check if our drive is not overriden - we are not doing some autonomous task and in this case just want to drive around
+        if not self.drive_override:
+            # get the x and y axis of the left joystick on our controller
+            joystick_x = self.controller.getLeftX()
 
-        elif self.controller.getRightTriggerAxis() == 1:
-            self.drive.set_robot_to_angle(270)
+            # rember that y joystick is inverted
+            # multiply by -1
+            # "up" on the joystick is -1 and "down" is 1
+            joystick_y = self.controller.getLeftY() * -1
 
-        elif self.controller.getXButton():
-            self.drive.set_robot_to_angle(0)
+            # get the x axis of the right joystick used for turning the robot in place
+            joystick_turning = self.controller.getRightX()
+
+            # run field oriented drive based on joystick values
+            self.drive.field_oriented_drive(joystick_x, joystick_y, joystick_turning)
+            
+            # if we click the back button on our controller, reset the "zero" position on the yaw to our current angle
+            if self.controller.getBackButton():
+                self.imu.reset_yaw()
+        # else means that the drive is overriden and in this case want to run autonomous tasks
+        else:
+            #testing the turning to a certain angle
+            if self.controller.getLeftTriggerAxis() == 1:
+                self.drive.set_robot_to_angle(90)
+
+            elif self.controller.getRightTriggerAxis() == 1:
+                self.drive.set_robot_to_angle(270)
+
+            elif self.controller.getXButton():
+                self.drive.set_robot_to_angle(0)
+
             
         #if the left bumper is pressed, we shoot.
         #if self.controller.getLeftBumperPressed(): self.shoot.autonomous_shoot()

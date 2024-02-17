@@ -61,8 +61,13 @@ class Auto_Amp:
         if abs(self.apriltag_x) < 10: return True
 
         #x value on left, move right
+        elif(self.apriltag_x) < -10:
+            self.drive.mecanum_drive_robot_oriented(0, .5, 0)
         #x value on right, move left
+        elif self.apriltag_x > 10:
+            self.drive.mecanum_drive_robot_oriented(0, -.5, 0)
         #the camera is gonna be facing backwards so the directions are swapped.
+        #if the apriltag is on the right side of the camera, it is in reality on the left of our robot, and vice-versa
 
     def move_arm(self):
         """
