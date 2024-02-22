@@ -11,8 +11,8 @@ class Shooter:
    
     #spins the shooting motors
     def shooter_spin(self, speed):
-        self.shooter_lower_motor.set(speed)
-        self.shooter_upper_motor.set(-speed)
+        self.shooter_lower_motor.set(-speed)
+        self.shooter_upper_motor.set(speed)
 
     #stops the shooting motors.
     def stop(self):

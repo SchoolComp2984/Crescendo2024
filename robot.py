@@ -30,23 +30,17 @@ from subsystems.drive import Drive
 from subsystems.shooter import Shooter
 
 #import our networking
-from subsystems.netowrking import NetworkReceiver
+from subsystems.networking import NetworkReciever
 
 #import our intake class
 from subsystems.intake import Intake
 
-#import our climb class
-from subsystems.climber import Climber
-
-#import our arm class
 from subsystems.arm import Arm
 
 # import our IMU wrapper class with methods to access different values the IMU provides
 from subsystems.imu import IMU
 
 #IMPORTING UTILITIES
-# import our interpolation function used for joysticks
-from utils.math_functions import interpolation_drive
 
 #import our PID function
 from utils.pid import PID
@@ -79,25 +73,23 @@ class MyRobot(wpilib.TimedRobot):
         self.back_right.setInverted(True)
 
         #create reference to our Neo motors
-        self.shooter_upper_motor = rev.CANSparkMax(constants.SHOOTER_UPPER_MOTOR_ID, rev.CANSparkLowLevel.MotorType.kBrushless)
-        self.shooter_lower_motor = rev.CANSparkMax(constants.SHOOTER_LOWER_MOTOR_ID, rev.CANSparkLowLevel.MotorType.kBrushless)
+        self.shooter_upper_motor = phoenix5._ctre.WPI_TalonSRX(constants.SHOOTER_UPPER_MOTOR_ID_OR_ARM_IMU)
+        self.shooter_lower_motor = phoenix5._ctre.WPI_TalonSRX(constants.SHOOTER_LOWER_MOTOR_ID)
 
         # create reference to our intake motor
         self.intake_motor = rev.CANSparkMax(constants.INTAKE_MOTOR_ID, rev.CANSparkLowLevel.MotorType.kBrushless)
-
-        #create reference to our climb motors (Falcon 500)
-        self.climb_motor_left = phoenix5._ctre.WPI_TalonFX(constants.CLIMB_LEFT_ID)
-        self.climb_motor_right = phoenix5._ctre.WPI_TalonFX(constants.CLIMB_RIGHT_ID)
 
         # create a reference to our IMU
         self.imu_motor_controller = phoenix5._ctre.WPI_TalonSRX(constants.IMU_ID)
         self.imu = IMU(self.imu_motor_controller)
 
         #reference to the two arm motors that move it up and down
-        self.arm_motor_left = phoenix5._ctre.WPI_TalonFX(constants.ARM_LEFT_ID)
-        self.arm_motor_right = phoenix5._ctre.WPI_TalonFX(constants.ARM_RIGHT_ID)
-        self.imu_arm_controller = phoenix5._ctre.WPI_TalonSRX(constants.ARM_IMU_ID)
-        self.arm_imu = IMU(self.imu_arm_controller)
+        self.arm_motor_left = rev.CANSparkMax(constants.ARM_LEFT_ID, rev.CANSparkLowLevel.MotorType.kBrushless)
+        self.arm_motor_right = rev.CANSparkMax(constants.ARM_RIGHT_ID, rev.CANSparkLowLevel.MotorType.kBrushless)
+
+        # reference to our arm IMU
+        # our arm IMU is connected to the Talon SRX for our upper shooter motor
+        self.arm_imu = IMU(self.shooter_upper_motor)
 
         #REFERENCES/INSTANCES OF THE SUBSYSTEMS
         #instance of the arm class that has methods for moving the arm
@@ -106,39 +98,33 @@ class MyRobot(wpilib.TimedRobot):
         #create an instance of our Intake class that contains methods for shooting
         self.intake = Intake(self.intake_motor)
 
-        #create an instance of our Climb class that contains methods for climbing
-        self.climb = Climber(self.climb_motor_left, self.climb_motor_right)
-
         # create an instance of our Drive class that contains methods for different modes of driving
         self.drive = Drive(self.front_right, self.front_left, self.back_left, self.back_right, self.imu)
 
-        self.networking = NetworkReceiver()
+        self.networking = NetworkReciever()
         
         #create an instance of our shooter
-        self.shooter = Shooter(self.shooter_upper_motor, self.shooter_lower_motor)
+        #self.shooter = Shooter(self.shooter_upper_motor, self.shooter_lower_motor)
 
         # create an instance of our controller
         # it is an xbox controller at id constants.CONTROLLER_ID, which is 0
         self.controller = wpilib.XboxController(constants.CONTROLLER_ID)
 
-        # create an instance of our Drive class that contains methods for different modes of driving
-        self.drive = Drive(self.front_right, self.front_left, self.back_left, self.back_right, self.imu)
-        
-        #create an instance of our shooting function
-        self.shooter = Shooter(self.shooter_lower_motor, self.shooter_upper_motor)
-
         #create an instance of our amping function
-        self.auto_amp = Auto_Amp(self.arm, self.drive, self.shooter, self.intake, self.imu, self.networking)
+        #self.auto_amp = Auto_Amp(self.arm, self.drive, self.shooter, self.intake, self.imu, self.networking)
 
         #create an instance for the auto shoot
-        self.auto_shoot = Auto_Shoot(self.arm, self.drive, self.shooter, self.intake, self.imu, self.networking)
+        #self.auto_shoot = Auto_Shoot(self.arm, self.drive, self.shooter, self.intake, self.imu, self.networking)
 
         #instance for the auto intake
         self.auto_intake = Auto_Intake(self.arm, self.drive, self.intake, self.imu, self.networking)
 
         # override variables to prevent spinning the same motors in multiple places in the code
-        self.drive_override = False
+        self.drive_override = True
+        self.intake_shoot_override = False
+        self.arm_override = True
 
+        if self.arm_imu.is_ready(): print("arm_imu is in fact ready")
     # setup before our robot transitions to autonomous
     def autonomousInit(self):
         pass
@@ -153,18 +139,35 @@ class MyRobot(wpilib.TimedRobot):
         
     # ran every 20 ms during teleop
     def teleopPeriodic(self):
+        #chceking yaw of the arm for research purposes!        
+        if not self.arm_override:
+            if self.controller.getStartButton():
+                #self.arm.move_arm_to_angle(-30)
+                self.arm.set_speed(0.25)
+            else:
+                self.arm.stop()
+
         # test our intake and shooter 2/8 meeting
-        if self.controller.getAButton():
-            self.intake.intake_spin(1)
+        if not self.intake_shoot_override:
+            if self.controller.getAButton():
+                self.intake.intake_spin(1)
 
-        elif self.controller.getBButton():
-            self.shooter.shooter_spin(0.7)
+            elif self.controller.getXButton():
+                self.intake.intake_spin(-1)
 
-        else:
-            self.intake.stop()
-            self.shooter.stop()
+            else:
+                self.intake.stop()
 
-        
+            """
+            if self.controller.getBButton():
+               self.shooter.shooter_spin(1)
+
+            elif self.controller.getYButton():
+                self.shooter.shooter_spin(-1)
+
+            else:
+                self.shooter.stop()        
+                """
 
         # running drive code
         # check if our drive is not overriden - we are not doing some autonomous task and in this case just want to drive around
@@ -188,7 +191,8 @@ class MyRobot(wpilib.TimedRobot):
                 self.imu.reset_yaw()
         # else means that the drive is overriden and in this case want to run autonomous tasks
         else:
-            #testing the turning to a certain angle
+            pass
+            """#testing the turning to a certain angle
             if self.controller.getLeftTriggerAxis() == 1:
                 self.drive.set_robot_to_angle(90)
 
@@ -196,7 +200,7 @@ class MyRobot(wpilib.TimedRobot):
                 self.drive.set_robot_to_angle(270)
 
             elif self.controller.getXButton():
-                self.drive.set_robot_to_angle(0)
+                self.drive.set_robot_to_angle(0)"""
 
             
         #if the left bumper is pressed, we shoot.

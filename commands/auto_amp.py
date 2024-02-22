@@ -2,7 +2,7 @@
 from wpilib import DriverStation
 
 class Auto_Amp:
-    def _init__(self, _arm, _drive, _shooter, _intake, _imu, _networking):
+    def __init__(self, _arm, _drive, _shooter, _intake, _imu, _networking):
         # stages for using the amp.
         #iterating through these stages with a tracker that will move on to the next stage after the current one is finished.
         self.AMP_IDLE = 0

@@ -1,6 +1,6 @@
 
 class Auto_Intake:
-    def _init__(self, _arm, _drive, _intake, _imu, _networking):
+    def __init__(self, _arm, _drive, _intake, _imu, _networking):
         #stages for autonomously intaking
         self.INTAKE_IDLE = 0 #idle, not doing anything
         self.FIND_NOTE = 1 #find the note position, turn so that we're facing the note.
