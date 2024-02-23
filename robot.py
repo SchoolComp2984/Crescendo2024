@@ -104,22 +104,22 @@ class MyRobot(wpilib.TimedRobot):
         self.networking = NetworkReciever()
         
         #create an instance of our shooter
-        #self.shooter = Shooter(self.shooter_upper_motor, self.shooter_lower_motor)
+        self.shooter = Shooter(self.shooter_upper_motor, self.shooter_lower_motor)
 
         # create an instance of our controller
         # it is an xbox controller at id constants.CONTROLLER_ID, which is 0
         self.controller = wpilib.XboxController(constants.CONTROLLER_ID)
 
         #create an instance of our amping function
-        #self.auto_amp = Auto_Amp(self.arm, self.drive, self.shooter, self.intake, self.imu, self.networking)
+        self.auto_amp = Auto_Amp(self.arm, self.drive, self.shooter, self.intake, self.imu, self.networking)
 
         #create an instance for the auto shoot
-        #self.auto_shoot = Auto_Shoot(self.arm, self.drive, self.shooter, self.intake, self.imu, self.networking)
+        self.auto_shoot = Auto_Shoot(self.arm, self.drive, self.shooter, self.intake, self.imu, self.networking)
 
         #instance for the auto intake
         self.auto_intake = Auto_Intake(self.arm, self.drive, self.intake, self.imu, self.networking)
 
-        # override variables to prevent spinning the same motors in multiple places in the code
+        # override variables  to prevent spinning the same motors in multiple places in the code
         self.drive_override = True
         self.intake_shoot_override = False
         self.arm_override = True
@@ -158,7 +158,7 @@ class MyRobot(wpilib.TimedRobot):
             else:
                 self.intake.stop()
 
-            """
+            
             if self.controller.getBButton():
                self.shooter.shooter_spin(1)
 
@@ -167,7 +167,7 @@ class MyRobot(wpilib.TimedRobot):
 
             else:
                 self.shooter.stop()        
-                """
+                
 
         # running drive code
         # check if our drive is not overriden - we are not doing some autonomous task and in this case just want to drive around
