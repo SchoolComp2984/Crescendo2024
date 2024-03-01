@@ -13,10 +13,14 @@ from utils.math_functions import clamp
 
 class Arm:
     #initiating the arm values and stuff
-    def __init__(self, _arm_motor_left, _arm_motor_right, _arm_imu):
+    def __init__(self, _arm_motor_left_front, _arm_motor_left_back, _arm_motor_right_front, _arm_motor_right_back, _arm_imu):
         #references to the arm motors and the imu that were passed in.
-        self.arm_motor_left = _arm_motor_left
-        self.arm_motor_right = _arm_motor_right
+        self.arm_motor_left_front = _arm_motor_left_front
+        self.arm_motor_left_back = _arm_motor_left_back
+
+        self.arm_motor_right_front = _arm_motor_right_front
+        self.arm_motor_right_back = _arm_motor_right_back
+
         self.arm_imu = _arm_imu
 
         #proportional constant, integral constant, derivative constand for pid
@@ -31,8 +35,12 @@ class Arm:
         self.arm_pid = PID(self.arm_p, self.arm_i, self.arm_d, self.arm_val)
     
     def set_speed(self, speed):
-        self.arm_motor_left.set(speed)
-        self.arm_motor_right.set(-speed)
+        self.arm_motor_left_front.set(speed)
+        self.arm_motor_left_back.set(speed)
+
+        self.arm_motor_right_front.set(speed)
+        self.arm_motor_right_back.set(speed)
+
 
     #i believe that if we are to put an IMU on the arm, it would be best to have it lay on the horizontal side of the arm so that we can just use the yaw to measure the angle.
     #function to reset yaw of the arm IMU
@@ -45,8 +53,11 @@ class Arm:
     
     # function to stop spinning the arm motors
     def stop(self):
-        self.arm_motor_left.set(0)
-        self.arm_motor_right.set(0)
+        self.arm_motor_left_front.set(0)
+        self.arm_motor_left_back.set(0)
+
+        self.arm_motor_right_front.set(0)
+        self.arm_motor_right_back.set(0)
 
     def move_arm_to_angle(self, desired_angle):
         #references to the current angle that is passsed in and the final angle that we need.

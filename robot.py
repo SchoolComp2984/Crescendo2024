@@ -2,6 +2,9 @@
 # wpilib contains useful classes and methods for interfacing with parts of our robot such as sensors and even the driver station
 import wpilib
 
+# import cscore for pov camera
+from cscore import CameraServer
+
 # phoenix5 contains classes and methods to inferface with motors distributed by cross the road electronics
 # third party library
 import phoenix5
@@ -59,6 +62,9 @@ class MyRobot(wpilib.TimedRobot):
         # for example, because we have a timer, we can move the robot forwards for x amount of seconds
         self.timer = wpilib.Timer()
 
+        # init camera
+        CameraServer.startAutomaticCapture()
+
         # create reference to our Falcon 500 motors
         # each Falcon 500 has a Talon FX motor controller
         # we need to provide each instance of the Talon FX class with its corresponding CAN ID
@@ -84,8 +90,11 @@ class MyRobot(wpilib.TimedRobot):
         self.imu = IMU(self.imu_motor_controller)
 
         #reference to the two arm motors that move it up and down
-        self.arm_motor_left = rev.CANSparkMax(constants.ARM_LEFT_ID, rev.CANSparkLowLevel.MotorType.kBrushless)
-        self.arm_motor_right = rev.CANSparkMax(constants.ARM_RIGHT_ID, rev.CANSparkLowLevel.MotorType.kBrushless)
+        self.arm_motor_left_front = rev.CANSparkMax(constants.ARM_LEFT_FRONT_ID, rev.CANSparkLowLevel.MotorType.kBrushless)
+        self.arm_motor_left_back = rev.CANSparkMax(constants.ARM_LEFT_BACK_ID, rev.CANSparkLowLevel.MotorType.kBrushless)
+        
+        self.arm_motor_right_front = rev.CANSparkMax(constants.ARM_RIGHT_FRONT_ID, rev.CANSparkLowLevel.MotorType.kBrushless)
+        self.arm_motor_right_back = rev.CANSparkMax(constants.ARM_RIGHT_BACK_ID, rev.CANSparkLowLevel.MotorType.kBrushless)
 
         # reference to our arm IMU
         # our arm IMU is connected to the Talon SRX for our upper shooter motor
@@ -93,7 +102,7 @@ class MyRobot(wpilib.TimedRobot):
 
         #REFERENCES/INSTANCES OF THE SUBSYSTEMS
         #instance of the arm class that has methods for moving the arm
-        self.arm = Arm(self.arm_motor_left, self.arm_motor_right, self.arm_imu)
+        self.arm = Arm(self.arm_motor_left_front, self.arm_motor_left_back, self.arm_motor_right_front, self.arm_motor_right_back, self.arm_imu)
 
         #create an instance of our Intake class that contains methods for shooting
         self.intake = Intake(self.intake_motor)
@@ -122,7 +131,7 @@ class MyRobot(wpilib.TimedRobot):
         # override variables  to prevent spinning the same motors in multiple places in the code
         self.drive_override = True
         self.intake_shoot_override = False
-        self.arm_override = True
+        self.arm_override = False
 
         if self.arm_imu.is_ready(): print("arm_imu is in fact ready")
     # setup before our robot transitions to autonomous
@@ -139,11 +148,12 @@ class MyRobot(wpilib.TimedRobot):
         
     # ran every 20 ms during teleop
     def teleopPeriodic(self):
-        #chceking yaw of the arm for research purposes!        
+        #chceking yaw of the arm for research purposes!
         if not self.arm_override:
             if self.controller.getStartButton():
                 #self.arm.move_arm_to_angle(-30)
-                self.arm.set_speed(0.25)
+                self.arm_motor_left_front.set(1)
+                self.arm_motor_right_front.set(1)
             else:
                 self.arm.stop()
 
@@ -158,7 +168,6 @@ class MyRobot(wpilib.TimedRobot):
             else:
                 self.intake.stop()
 
-            
             if self.controller.getBButton():
                self.shooter.shooter_spin(1)
 
