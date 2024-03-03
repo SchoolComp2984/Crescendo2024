@@ -25,7 +25,7 @@ class Arm:
 
         #proportional constant, integral constant, derivative constand for pid
         #numbers are placeholders for now. 
-        self.arm_p = 0.1
+        self.arm_p = 0.05
         self.arm_i = 0
         self.arm_d = 0
         #make previous error zero
@@ -71,7 +71,7 @@ class Arm:
         pid_adjustment = self.arm_pid.keep_integral(error)
         
         # clamp our PID adjustment between relatively small values for testing
-        pid_adjustment = clamp(pid_adjustment, -0.5, 0.5)
+        pid_adjustment = clamp(pid_adjustment, -0.20, 0.20)
 
         print(f"pid adjustment: {pid_adjustment}")
 

@@ -96,6 +96,11 @@ class MyRobot(wpilib.TimedRobot):
         self.arm_motor_right_front = rev.CANSparkMax(constants.ARM_RIGHT_FRONT_ID, rev.CANSparkLowLevel.MotorType.kBrushless)
         self.arm_motor_right_back = rev.CANSparkMax(constants.ARM_RIGHT_BACK_ID, rev.CANSparkLowLevel.MotorType.kBrushless)
 
+        # invert left side motors
+        self.arm_motor_left_front.setInverted(True)
+        self.arm_motor_left_back.setInverted(True)
+
+
         # reference to our arm IMU
         # our arm IMU is connected to the Talon SRX for our upper shooter motor
         self.arm_imu = IMU(self.shooter_upper_motor)
@@ -150,32 +155,43 @@ class MyRobot(wpilib.TimedRobot):
     def teleopPeriodic(self):
         #chceking yaw of the arm for research purposes!
         if not self.arm_override:
-            if self.controller.getStartButton():
-                #self.arm.move_arm_to_angle(-30)
-                self.arm_motor_left_front.set(1)
-                self.arm_motor_right_front.set(1)
+            # arm all the way down = -82 deg ~use -80 deg
+            # arm amp postion (perp to all the way down) = -7 deg
+
+            if self.controller.getAButton():
+                self.arm.move_arm_to_angle(-50)
             else:
                 self.arm.stop()
 
+            print(f"arm angle: {self.arm_imu.get_pitch()}")
+            """
+            if self.controller.getAButton():
+                self.arm.set_speed(0.3)
+            elif self.controller.getBButton():
+                self.arm.set_speed(-0.3)
+            else:
+                self.arm.stop()
+            
+            elif self.controller.getXButton():
+                self.arm_motor_left_back.set(0.5)
+            elif self.controller.getYButton():
+                self.arm_motor_left_front.set(0.5)
+            """
+
+
         # test our intake and shooter 2/8 meeting
         if not self.intake_shoot_override:
-            if self.controller.getAButton():
+            if self.controller.getXButton():
                 self.intake.intake_spin(1)
-
-            elif self.controller.getXButton():
-                self.intake.intake_spin(-1)
-
             else:
                 self.intake.stop()
-
-            if self.controller.getBButton():
-               self.shooter.shooter_spin(1)
-
-            elif self.controller.getYButton():
-                self.shooter.shooter_spin(-1)
+            
+            if self.controller.getYButton():
+                self.shooter.shooter_spin(1)
 
             else:
-                self.shooter.stop()        
+                self.shooter.stop()  
+                
                 
 
         # running drive code
