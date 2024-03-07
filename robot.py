@@ -19,6 +19,9 @@ from commands.autonomous import Autonomous
 #import our shooting
 from commands.auto_shoot import Auto_Shoot
 
+# import our auto shooting tested on 3/6 meeting
+from commands.auto_shoot_test import AutoShoot
+
 #import our amp 
 from commands.auto_amp import Auto_Amp
 
@@ -48,6 +51,9 @@ from subsystems.imu import IMU
 #import our PID function
 from utils.pid import PID
 
+# import clamp function
+from utils.math_functions import clamp
+
 # import our constants which serve as "settings" for our robot/code
 # mainly IDs for CAN motors, sensors, and our controllers
 from utils import constants
@@ -63,7 +69,7 @@ class MyRobot(wpilib.TimedRobot):
         self.timer = wpilib.Timer()
 
         # init camera
-        CameraServer.startAutomaticCapture()
+        #CameraServer.startAutomaticCapture()
 
         # create reference to our Falcon 500 motors
         # each Falcon 500 has a Talon FX motor controller
@@ -131,7 +137,10 @@ class MyRobot(wpilib.TimedRobot):
         self.auto_amp = Auto_Amp(self.arm, self.drive, self.shooter, self.intake, self.imu, self.networking)
 
         #create an instance for the auto shoot
-        self.auto_shoot = Auto_Shoot(self.arm, self.drive, self.shooter, self.intake, self.imu, self.networking)
+        #self.auto_shoot = Auto_Shoot(self.arm, self.drive, self.shooter, self.intake, self.imu, self.networking)
+
+        # create instance of auto shoot class
+        self.auto_shoot_test = AutoShoot(self.intake, self.shooter)
 
         #instance for the auto intake
         self.auto_intake = Auto_Intake(self.arm, self.drive, self.intake, self.imu, self.networking)
@@ -139,7 +148,7 @@ class MyRobot(wpilib.TimedRobot):
         # override variables  to prevent spinning the same motors in multiple places in the code
         self.drive_override = True
         self.intake_shoot_override = False
-        self.arm_override = True
+        self.arm_override = False
 
         if self.arm_imu.is_ready(): print("arm_imu is in fact ready")
     # setup before our robot transitions to autonomous
@@ -156,58 +165,69 @@ class MyRobot(wpilib.TimedRobot):
         
     # ran every 20 ms during teleop
     def teleopPeriodic(self):
-        #chceking yaw of the arm for research purposes!
+
+        #CODE FOR TESTING THE ARM
         if not self.arm_override:
             # arm all the way down = -82 deg ~use -80 deg
             # arm amp postion (perp to all the way down) = -7 deg
 
+            # HOLDING NUMBERS
+            # 0 = ?
+            # 0.025 = -13.7
+            # 0.05 = 
+            # 0.06
+            # 0.075 = 
+            # 0.08 = 
+            # 0.1 = 
+            # 0.11 = 
+
+            print(f"angle: {self.arm.get_arm_pitch()}")
+
             if self.controller.getAButton():
-                self.arm.set_speed(0.15)
+                self.arm.set_speed(0.025)
             elif self.controller.getBButton():
-                self.arm.set_speed(-0.15)
+                self.arm.set_speed(0.05)
             else:
-                self.arm.stop()
+                self.arm.set_speed(0)
 
-            print(f"arm angle: {self.arm_imu.get_pitch()}")
-            """
-            if self.controller.getAButton():
-                self.arm.set_speed(0.3)
-            elif self.controller.getBButton():
-                self.arm.set_speed(-0.3)
-            else:
-                self.arm.stop()
-            
-            elif self.controller.getXButton():
-                self.arm_motor_left_back.set(0.5)
-            elif self.controller.getYButton():
-                self.arm_motor_left_front.set(0.5)
-            """
-
-
-        # test our intake and shooter 2/8 meeting
+        #INTAKE AND SHOOTER TESTING
+        """
         if not self.intake_shoot_override:
             if self.controller.getXButton():
                 self.intake.intake_spin(1)
             else:
                 self.intake.stop()
-            
-            if self.controller.getBButton():
-                self.shooter_lower_motor.set(1)
-                self.shooter_upper_motor.set(1)
 
+            if self.controller.getYButton():
+                self.shooter.shooter_spin(1)
             else:
-                self.shooter_lower_motor.set(0)
-                self.shooter_upper_motor.set(0)                
-                
+                self.shooter.stop()
+        """
 
-        # running drive code
+        if not self.intake_shoot_override:
+            if self.controller.getXButton():
+                self.intake.intake_spin(1)
+            elif self.controller.getYButton():
+                self.intake.intake_spin(-1)
+            else:
+                self.intake.stop()
+
+
+        if self.controller.getBButton():
+            self.auto_shoot_test.auto_shoot()
+        else:
+            self.shooter.stop()
+
+ 
+                
+        #WORKING DRIVE CODE
         # check if our drive is not overriden - we are not doing some autonomous task and in this case just want to drive around
         if not self.drive_override:
             # get the x and y axis of the left joystick on our controller
             joystick_x = self.controller.getLeftX()
 
             # rember that y joystick is inverted
-            # multiply by -1
+            # multiply by -1;
             # "up" on the joystick is -1 and "down" is 1
             joystick_y = self.controller.getLeftY() * -1
 

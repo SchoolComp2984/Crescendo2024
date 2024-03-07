@@ -41,7 +41,6 @@ class Arm:
         self.arm_motor_right_front.set(speed)
         self.arm_motor_right_back.set(speed)
 
-
     #i believe that if we are to put an IMU on the arm, it would be best to have it lay on the horizontal side of the arm so that we can just use the yaw to measure the angle.
     #function to reset yaw of the arm IMU
     def reset_arm_angle(self):
@@ -59,7 +58,7 @@ class Arm:
         self.arm_motor_right_front.set(0)
         self.arm_motor_right_back.set(0)
 
-    def move_arm_to_angle(self, desired_angle):
+    def PID_arm_to_angle(self, desired_angle):
         #references to the current angle that is passsed in and the final angle that we need.
         current_angle = self.get_arm_pitch()
         desired_angle = desired_angle
@@ -69,9 +68,11 @@ class Arm:
 
         #use a pid to get the power needed for the motorpower that we need
         pid_adjustment = self.arm_pid.keep_integral(error)
-        
-        # clamp our PID adjustment between relatively small values for testing
-        pid_adjustment = clamp(pid_adjustment, -0.20, 0.20)
+
+        pid_adjustment = clamp(pid_adjustment, -0.18, 0.18)
+
+        if pid_adjustment < 0.05 and pid_adjustment > -0.05:
+            pid_adjustment = 0.09
 
         print(f"pid adjustment: {pid_adjustment}")
 
@@ -79,4 +80,24 @@ class Arm:
         #test this! motors may spin opposite directions
         self.set_speed(pid_adjustment)
     
-    
+    def lazy_arm_to_angle(self, desired_angle):
+        current_angle = self.get_arm_pitch()
+        
+        if abs(current_angle - desired_angle <= 2):
+            return
+        
+        elif current_angle < desired_angle:
+            if abs(current_angle - desired_angle) < 10:
+                self.set_speed(.07)
+            elif abs(current_angle - desired_angle) < 30:
+                self.set_speed(.12)
+            else:
+                self.set_speed(.17)
+        
+        elif current_angle > desired_angle:
+            if abs(current_angle - desired_angle) < 10:
+                self.set_speed(-.07)
+            elif abs(current_angle - desired_angle) < 30:
+                self.set_speed(-.12)
+            else:
+                self.set_speed(-.17) 
