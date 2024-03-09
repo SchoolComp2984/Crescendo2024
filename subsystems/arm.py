@@ -11,6 +11,12 @@ from utils.pid import PID
 # import our clamp function
 from utils.math_functions import clamp
 
+# import math
+from utils import math_functions
+
+# import math for PID
+import math
+
 class Arm:
     #initiating the arm values and stuff
     def __init__(self, _arm_motor_left_front, _arm_motor_left_back, _arm_motor_right_front, _arm_motor_right_back, _arm_imu):
@@ -23,17 +29,15 @@ class Arm:
 
         self.arm_imu = _arm_imu
 
-        #proportional constant, integral constant, derivative constand for pid
-        #numbers are placeholders for now. 
-        self.arm_p = 0.05
-        self.arm_i = 0
-        self.arm_d = 0
+        # proportional constant
+        self.kp = 0.001
+
+        # gravity compensation constant
+        self.kg = 0.05
+
         #make previous error zero
         self.arm_val = 0
 
-        #setting up the PIDS for the arm
-        self.arm_pid = PID(self.arm_p, self.arm_i, self.arm_d, self.arm_val)
-    
     def set_speed(self, speed):
         self.arm_motor_left_front.set(speed)
         self.arm_motor_left_back.set(speed)
@@ -41,14 +45,9 @@ class Arm:
         self.arm_motor_right_front.set(speed)
         self.arm_motor_right_back.set(speed)
 
-    #i believe that if we are to put an IMU on the arm, it would be best to have it lay on the horizontal side of the arm so that we can just use the yaw to measure the angle.
-    #function to reset yaw of the arm IMU
-    def reset_arm_angle(self):
-        self.arm_imu.reset_pitch()
-
     #function to get the angle (pitch) of the arm
     def get_arm_pitch(self):
-        return self.arm_imu.get_pitch()
+        return self.arm_imu.get_pitch() + 87.2314
     
     # function to stop spinning the arm motors
     def stop(self):
@@ -58,46 +57,72 @@ class Arm:
         self.arm_motor_right_front.set(0)
         self.arm_motor_right_back.set(0)
 
-    def PID_arm_to_angle(self, desired_angle):
-        #references to the current angle that is passsed in and the final angle that we need.
+    def kg_interpolation(self, value):
+      arr = [ \
+      [0, 0.25],\
+      [34.2, 0.188],\
+      [45.5, 0.142],\
+      [90, 0.104]]
+
+
+      return math_functions.interpolation_array(value, arr)
+
+    def arm_to_angle(self, desired_angle):
+        # get our current arm angle
         current_angle = self.get_arm_pitch()
-        desired_angle = desired_angle
 
         # calculate the error that we pass into the PID controller
         error = desired_angle - current_angle
 
-        #use a pid to get the power needed for the motorpower that we need
-        pid_adjustment = self.arm_pid.keep_integral(error)
+        # initialize adjustment to 0
+        adjustment = 0
 
-        pid_adjustment = clamp(pid_adjustment, -0.18, 0.18)
+        # check if we are within 10 degrees
+        if abs(error) > 5:
+            adjustment = 0.03
 
-        if pid_adjustment < 0.05 and pid_adjustment > -0.05:
-            pid_adjustment = 0.09
 
-        print(f"pid adjustment: {pid_adjustment}")
+        # check  we are within 20 degrees
+        if abs(error) > 10:
+            adjustment = 0.05
+
+
+        # flip adjustent sign if moving up
+        if error > 0:
+            adjustment = -adjustment
+
+        # calculate justified current arm angle in radians
+        justifed_angle_radians = current_angle * math.pi / 180
+
+        # calculate gravity compensation
+        gravity_compensation = math.cos(justifed_angle_radians) * self.kg_interpolation(current_angle)
+
+        # calculate motor power
+        motor_power = gravity_compensation + adjustment
+
+        # clamp our motor power so we don't move to fast
+        motor_power_clamped = clamp(motor_power, -0.2, 0.2)
+
+        print(f"desired: {desired_angle}, angle: {current_angle}, adjustment: {adjustment}, motor power: {motor_power_clamped}")
 
         #spin the motors based on calculated PID value
-        #test this! motors may spin opposite directions
-        self.set_speed(pid_adjustment)
+        self.set_speed(motor_power_clamped)
     
-    def lazy_arm_to_angle(self, desired_angle):
+    def arm_gravity_test(self, printout):
+        # get the current angle from the IMU
         current_angle = self.get_arm_pitch()
-        
-        if abs(current_angle - desired_angle <= 2):
-            return
-        
-        elif current_angle < desired_angle:
-            if abs(current_angle - desired_angle) < 10:
-                self.set_speed(.07)
-            elif abs(current_angle - desired_angle) < 30:
-                self.set_speed(.12)
-            else:
-                self.set_speed(.17)
-        
-        elif current_angle > desired_angle:
-            if abs(current_angle - desired_angle) < 10:
-                self.set_speed(-.07)
-            elif abs(current_angle - desired_angle) < 30:
-                self.set_speed(-.12)
-            else:
-                self.set_speed(-.17) 
+
+         # calculate justified current arm angle in radians
+        justifed_angle_radians = current_angle * math.pi / 180
+
+        # calculate gravity compensation
+        gravity_compensation = math.cos(justifed_angle_radians) * self.kg_interpolation(current_angle)
+
+        # calculate motor power
+        motor_power = clamp(gravity_compensation, -0.2, 0.2)
+
+        # spin motors
+        self.set_speed(motor_power)
+
+        if printout:
+            print(f"angle: {self.get_arm_pitch()}, kg: {self.kg_interpolation(current_angle)}, motor power: {motor_power}")

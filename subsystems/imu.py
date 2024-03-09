@@ -8,15 +8,13 @@ class IMU(phoenix5._ctre.sensors.PigeonIMU):
     def __init__(self, _parent_motor_controller : phoenix5._ctre.WPI_TalonSRX):
         super().__init__(_parent_motor_controller)
 
-        self.pitch_difference = 0
-
     # return the yaw of our robot (using this the most)
     # return unit is degrees
     def get_yaw(self):
         return self.getYawPitchRoll()[1][0]
     
     def get_pitch(self):
-        return self.getYawPitchRoll()[1][1] - self.pitch_difference
+        return self.getYawPitchRoll()[1][1]
     
     def get_roll(self):
         return self.getYawPitchRoll()[1][2]
@@ -26,9 +24,6 @@ class IMU(phoenix5._ctre.sensors.PigeonIMU):
         #so we just subtracted the current yaw from the current yaw to make it go back to zero
         #and it works
         self.addYaw(-self.get_yaw())
-
-    def reset_pitch(self):
-        self.pitch_difference = self.get_pitch()
 
     # check if our IMU has "waken up" and is ready to be used
     def is_ready(self):

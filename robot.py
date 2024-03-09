@@ -147,8 +147,10 @@ class MyRobot(wpilib.TimedRobot):
 
         # override variables  to prevent spinning the same motors in multiple places in the code
         self.drive_override = True
-        self.intake_shoot_override = False
+        self.intake_override = True
+        self.shoot_override = True
         self.arm_override = False
+
 
         if self.arm_imu.is_ready(): print("arm_imu is in fact ready")
     # setup before our robot transitions to autonomous
@@ -171,24 +173,10 @@ class MyRobot(wpilib.TimedRobot):
             # arm all the way down = -82 deg ~use -80 deg
             # arm amp postion (perp to all the way down) = -7 deg
 
-            # HOLDING NUMBERS
-            # 0 = ?
-            # 0.025 = -13.7
-            # 0.05 = 
-            # 0.06
-            # 0.075 = 
-            # 0.08 = 
-            # 0.1 = 
-            # 0.11 = 
+            #print(f"arm angle: {self.arm.get_arm_pitch()}")
 
-            print(f"angle: {self.arm.get_arm_pitch()}")
+            self.arm.arm_to_angle(10)
 
-            if self.controller.getAButton():
-                self.arm.set_speed(0.025)
-            elif self.controller.getBButton():
-                self.arm.set_speed(0.05)
-            else:
-                self.arm.set_speed(0)
 
         #INTAKE AND SHOOTER TESTING
         """
@@ -204,7 +192,7 @@ class MyRobot(wpilib.TimedRobot):
                 self.shooter.stop()
         """
 
-        if not self.intake_shoot_override:
+        if not self.intake_override:
             if self.controller.getXButton():
                 self.intake.intake_spin(1)
             elif self.controller.getYButton():
@@ -212,11 +200,11 @@ class MyRobot(wpilib.TimedRobot):
             else:
                 self.intake.stop()
 
-
-        if self.controller.getBButton():
-            self.auto_shoot_test.auto_shoot()
-        else:
-            self.shooter.stop()
+        if not self.shoot_override:
+            if self.controller.getBButton():
+                self.auto_shoot_test.auto_shoot()
+            else:
+                self.shooter.stop() 
 
  
                 
