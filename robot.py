@@ -147,8 +147,8 @@ class MyRobot(wpilib.TimedRobot):
 
         # override variables  to prevent spinning the same motors in multiple places in the code
         self.drive_override = True
-        self.intake_override = True
-        self.shoot_override = True
+        self.intake_override = False
+        self.shoot_override = False
         self.arm_override = False
 
 
@@ -174,8 +174,11 @@ class MyRobot(wpilib.TimedRobot):
             # arm amp postion (perp to all the way down) = -7 deg
 
             #print(f"arm angle: {self.arm.get_arm_pitch()}")
-
-            self.arm.arm_to_angle(10)
+            
+            if self.controller.getAButton():
+                self.arm.arm_to_angle(10)
+            else:
+                self.arm.set_speed(0.05)
 
 
         #INTAKE AND SHOOTER TESTING
@@ -195,8 +198,6 @@ class MyRobot(wpilib.TimedRobot):
         if not self.intake_override:
             if self.controller.getXButton():
                 self.intake.intake_spin(1)
-            elif self.controller.getYButton():
-                self.intake.intake_spin(-1)
             else:
                 self.intake.stop()
 

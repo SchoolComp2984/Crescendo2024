@@ -31,7 +31,7 @@ class AutoShoot:
         # check if we are revving
         elif self.auto_shoot_stage == self.REVVING:
             # rev shooter motors
-            self.shooter.shooter_spin(1)
+            self.shooter.shooter_spin(0.6)
 
             # check if we have been spinning shooter motors for 1.75 seconds
             if self.revving_start_time + 1.75 < self.timer.getFPGATimestamp():
@@ -44,7 +44,7 @@ class AutoShoot:
         # check if we are shooting
         elif self.auto_shoot_stage == self.SHOOTING:
             # spin the shooter and intake motors
-            self.shooter.shooter_spin(1)
+            self.shooter.shooter_spin(0.6)
             self.intake.intake_spin(1)
 
             # check if we have been shooting the note for 1 second

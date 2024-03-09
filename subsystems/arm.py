@@ -30,10 +30,10 @@ class Arm:
         self.arm_imu = _arm_imu
 
         # proportional constant
-        self.kp = 0.001
+        self.kp = 0.0015
 
-        # gravity compensation constant
-        self.kg = 0.05
+        # init gravity compensation
+        self.gravity_compensation = 0
 
         #make previous error zero
         self.arm_val = 0
@@ -59,10 +59,10 @@ class Arm:
 
     def kg_interpolation(self, value):
       arr = [ \
-      [0, 0.25],\
-      [34.2, 0.188],\
-      [45.5, 0.142],\
-      [90, 0.104]]
+      [0, 0.2],\
+      [34.2, 0.16],\
+      [45.5, 0.135],\
+      [90, 0.1]]
 
 
       return math_functions.interpolation_array(value, arr)
@@ -74,36 +74,41 @@ class Arm:
         # calculate the error that we pass into the PID controller
         error = desired_angle - current_angle
 
-        # initialize adjustment to 0
-        adjustment = 0
+        # calculate proportional term
+        #pid_value = self.arm_pid.keep_integral(error)
 
-        # check if we are within 10 degrees
-        if abs(error) > 5:
-            adjustment = 0.03
+        k = self.kp
 
+        if (error < 0):
+            k = 0.009
 
-        # check  we are within 20 degrees
-        if abs(error) > 10:
-            adjustment = 0.05
-
-
-        # flip adjustent sign if moving up
-        if error > 0:
-            adjustment = -adjustment
+        proportional = k * error
 
         # calculate justified current arm angle in radians
         justifed_angle_radians = current_angle * math.pi / 180
 
+        if current_angle < desired_angle - 1 or current_angle > desired_angle + 1:
+            self.gravity_compensation = math.cos(justifed_angle_radians) * self.kg_interpolation(current_angle)
+
+
+        """
         # calculate gravity compensation
         gravity_compensation = math.cos(justifed_angle_radians) * self.kg_interpolation(current_angle)
 
+        # increase or decrease gravity compensation based on how faw we are away from target to compensate for momentum
+        if current_angle < desired_angle - 5:
+            gravity_compensation *= 1 + 0.15 * math.cos(justifed_angle_radians)
+        elif current_angle > desired_angle + 5:
+            gravity_compensation = -0.008 * math.cos(justifed_angle_radians)
+        """
+
         # calculate motor power
-        motor_power = gravity_compensation + adjustment
+        motor_power = self.gravity_compensation + proportional
 
         # clamp our motor power so we don't move to fast
-        motor_power_clamped = clamp(motor_power, -0.2, 0.2)
+        motor_power_clamped = clamp(motor_power, -0.1, 0.2)
 
-        print(f"desired: {desired_angle}, angle: {current_angle}, adjustment: {adjustment}, motor power: {motor_power_clamped}")
+        print(f"des.: {desired_angle}, err: {error}, angle: {current_angle}, gravity: {self.gravity_compensation}, pid.: {proportional}, pow: {motor_power_clamped}")
 
         #spin the motors based on calculated PID value
         self.set_speed(motor_power_clamped)
