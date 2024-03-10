@@ -30,13 +30,20 @@ class Arm:
         self.arm_imu = _arm_imu
 
         # proportional constant
-        self.kp = 0.0015
+        self.kp = 0.0017
 
         # init gravity compensation
         self.gravity_compensation = 0
 
         #make previous error zero
         self.arm_val = 0
+
+        # init desired position value
+        self.desired_position = 84
+
+        # init shooting override value
+        self.shooting_override = False
+        self.shooting_holding_value = 0
 
     def set_speed(self, speed):
         self.arm_motor_left_front.set(speed)
@@ -59,13 +66,24 @@ class Arm:
 
     def kg_interpolation(self, value):
       arr = [ \
-      [0, 0.2],\
+      [0, 0.17],\
       [34.2, 0.16],\
-      [45.5, 0.135],\
+      [45.5, 0.14],\
       [90, 0.1]]
 
 
       return math_functions.interpolation_array(value, arr)
+
+    def k_down_interpolation(self, value):
+        arr = [ \
+            [0, 0.008],\
+            [15, 0.008],\
+            [22.5, 0.007],\
+            [30, 0.005],\
+            [60, 0.002],\
+            [90, 0.001]]
+        
+        return math_functions.interpolation_array(value, arr)
 
     def arm_to_angle(self, desired_angle):
         # get our current arm angle
@@ -80,7 +98,7 @@ class Arm:
         k = self.kp
 
         if (error < 0):
-            k = 0.009
+            k = self.k_down_interpolation(current_angle)
 
         proportional = k * error
 
@@ -90,28 +108,23 @@ class Arm:
         if current_angle < desired_angle - 1 or current_angle > desired_angle + 1:
             self.gravity_compensation = math.cos(justifed_angle_radians) * self.kg_interpolation(current_angle)
 
-
-        """
-        # calculate gravity compensation
-        gravity_compensation = math.cos(justifed_angle_radians) * self.kg_interpolation(current_angle)
-
-        # increase or decrease gravity compensation based on how faw we are away from target to compensate for momentum
-        if current_angle < desired_angle - 5:
-            gravity_compensation *= 1 + 0.15 * math.cos(justifed_angle_radians)
-        elif current_angle > desired_angle + 5:
-            gravity_compensation = -0.008 * math.cos(justifed_angle_radians)
-        """
-
         # calculate motor power
         motor_power = self.gravity_compensation + proportional
 
         # clamp our motor power so we don't move to fast
-        motor_power_clamped = clamp(motor_power, -0.1, 0.2)
+        motor_power_clamped = clamp(motor_power, -0.05, 0.2)
+
+        # check if not shooting
+        if not self.shooting_override:
+            self.shooting_holding_value = motor_power_clamped
 
         print(f"des.: {desired_angle}, err: {error}, angle: {current_angle}, gravity: {self.gravity_compensation}, pid.: {proportional}, pow: {motor_power_clamped}")
 
-        #spin the motors based on calculated PID value
-        self.set_speed(motor_power_clamped)
+        #spin the motors based on calculated PID value or previously stored holding value
+        if self.shooting_override:
+            self.set_speed(self.shooting_holding_value)
+        else:
+            self.set_speed(motor_power_clamped)
     
     def arm_gravity_test(self, printout):
         # get the current angle from the IMU

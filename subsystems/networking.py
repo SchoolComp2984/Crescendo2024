@@ -14,9 +14,9 @@ class NetworkReciever():
     # we can use this to center our robot and aim towards the speaker
     def get_apriltag_data(self):
         # store the x and y positions of the apriltag as variables and set them to None if the data cannot be found
-        apriltag_x = self.dashboard.getNumber("apriltag_x", None)
-        apriltag_y = self.dashboard.getNumber("apriltag_y", None)
-        apriltag_distance = self.dashboard.getNumber("apriltag_distance", None)
+        apriltag_x = self.dashboard.getNumber("tagcenterx", None)
+        apriltag_y = self.dashboard.getNumber("tagcentery", None)
+        apriltag_distance = self.dashboard.getNumber("Distance", None)
 
         # return the position in an array
         return [apriltag_x, apriltag_y, apriltag_distance]
