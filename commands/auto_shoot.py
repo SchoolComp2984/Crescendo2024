@@ -33,54 +33,91 @@ class Auto_Shoot:
         
         #timer to track how long motors have been spinning and if we can move on to the next stage.
         self.timer = wpilib.Timer()
+
+        # initialize shooter and intake spin start times
         self.shooter_spin_start_time = 0.0
         self.feeding_spin_start_time = 0.0
 
     def autonomous_shoot(self):
         if self.shooter_stage == self.IDLE:
+            # check if ready, move to centering robot stage
             self.shooter_stage = self.CENTERING_ROBOT
 
         elif self.shooter_stage == self.CENTERING_ROBOT:
-            # get position of april tag (x)
-            # if the apriltag x position is negative, rotate robot left
-            # else if april tag position is positive, rotate robot right
-            # if it is within tolerance band, move to next stage
+            # get the april tag position from the raspberry pi
+            apriltag_x = self.networking.get_april_tag_data()[0]
+
+            # CHECK THAT IT IS THE SPEAKER APRIL TAG
+            # 7 is blue april tag and 4 is red april tag
+
+            # if april tag is left of center, rotate left
+            if apriltag_x < -5:
+                self.drive.tank_drive(-0.1, 0.1)
+
+            # if april tag is right of center, rotate right
+            else if apriltag_x > 5:
+                self.drive.tank_drive(0.1, -0.1)
                 
-            self.shooter_stage = self.ARM_TO_ANGLE
+            # else (meaning we are somewhere in the middle), move to angling the arm
+            else:
+                self.shooter_stage = self.ARM_TO_ANGLE
     
         elif self.shooter_stage == self.ARM_TO_ANGLE:
             # get distance of apriltag
-            # convert to same units as all other numbers
+            apriltag_distance = self.networking.get_april_tag_data()[2]
+
+            # calculate height of speaker
+            speaker_height = 0
+
             # calculate arm height
+            arm_height = 0
+
+            # find total height
+            height = speaker_height + arm_height
+            
             # run arctan calculation to get angle
+            arm_angle = math.atan2(height / apriltag_distance)
+
             # justify for angle of shooter relative to arm
+            justified_arm_angle = arm_angle - 0
+            
             # move arm to the angle
+            self.arm.desired_arm_angle = justified_arm_angle
+
             # once arm is within a certain degree of tolerance, move to next step OR after certain amount of time if tolerance if not consistent
+            if abs(self.arm.get_arm_pitch() - self.arm.desired_arm_angle) < 4:
+                self.shooter_stage = self.SHOOTER_MOTOR_SPIN
+                self.shooter_spin_start_time = self.timer.getFPGATimestamp()
+            
             # set holding position and everything
-            
-            self.shooter_stage = self.SHOOTER_MOTOR_SPIN
 
-        elif self.shooter_stage == self.SHOTER_MOTOR_SPIN:
+        
+        elif self.shooter_stage == self.SHO)TER_MOTOR_SPIN:
             # spin shooter motor for 1.5 seconds
-            # if 1.5 seconds is up, move to feeding
-            
-            self.shooter_stage = self.FEED_NOTE
+            self.shooter.shooter_spin(1)
 
-        elif self.shooter_stage == self.FEED_NOTE:
-            # spin shooter and intake for 1.5 seconds
-            # if 1.5 seconds is up, move to returning arm
+            # if 1.5 seconds is up, move to feeding
+            if self.shooter_spin_start_time + 1.75 < self.timer.getFPGATimestamp():
+                self.shooter_stage = self.FEED_NOTE
+                self.feeding_spin_start_time = self.timer.getFPGATimestamp()
             
-            self.shooter_stage = self.RETURN_ARM:
+            
+        elif self.shooter_stage == self.FEED_NOTE:
+            # spin shooter and intake
+            self.shooter.shooter_spin(1)
+            self.intake.intake_spin(1)
+            
+            # if 1.5 seconds is up, move to returning arm
+            if self.feeding_spin_start_time = self.timer.getFPGATimestamp():
+                self.shooter_stage = self.RETURN_ARM
 
         elif self.shooter_stage == self.RETURN_ARM:
             # move arm to position that is in the chassis
+            self.arm.desired_position = 60
+
             # if within tolerance OR timer, move to finished
-            
-            self.shooter_stage = self.FINISHED
+            if abs(self.arm.get_pitch() - self.arm.desired_arm_angle) < 4:
+                self.shooter_stage = self.FINISHED
 
         elif self.shooter_stage == self.FINISHED:
-            # reset
-            # alert driver ready to start sequence again
-            # go to idle ?
-            
-            pass
+            self.shooter_stage = self.IDLE
