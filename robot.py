@@ -152,8 +152,13 @@ class MyRobot(wpilib.TimedRobot):
                 self.arm.desired_position = 77
 
             # Down arrow -> source arm position
-            # using for down position for now 3/11
             elif self.operator_controller.getPOV() == 180:
+                self.arm.shooting_override = False
+                self.arm.desired_position = 67
+
+            # Flight Stick Trigger -> down position:
+            # Change so it needs to be held down
+            elif self.drive_controller.getTrigger():
                 self.arm.shooting_override = False
                 self.arm.desired_position = 15
 
