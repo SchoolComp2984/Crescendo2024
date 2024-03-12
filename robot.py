@@ -1,71 +1,34 @@
-# import necessary libraries
-# wpilib contains useful classes and methods for interfacing with parts of our robot such as sensors and even the driver station
+# import necessary libraries for interfacing with joysticks, driverstations, and hardware from different manufacturers
 import wpilib
-
-# phoenix5 contains classes and methods to inferface with motors distributed by cross the road electronics
-# third party library
 import phoenix5
-
-#importing rev libraries for our neo motors
 import rev
 
-#IMPORTING OUR COMMANDS
-#import our Autonomous
-from commands.autonomous import Autonomous
-
-#import our shooting (manual)
-from commands.auto_shoot import AutoShoot
-
-# import our auto shooting tested on 3/6 meeting
-from commands.auto_shoot_manual import AutoShootManual
-
-#import our amp 
-from commands.auto_amp import Auto_Amp
-
-#import our intake
-from commands.auto_intake import Auto_Intake
-
-#IMPORTING OUR SUBSYSTEMS
-# import our Drive class that contains various modes of driving and methods for interfacing with our motors
+# import subsystems
 from subsystems.drive import Drive
-
-#import our Shooter class
 from subsystems.shooter import Shooter
-
-#import our networking
 from subsystems.networking import NetworkReciever
-
-#import our intake class
 from subsystems.intake import Intake
-
 from subsystems.arm import Arm
-
-# import our IMU wrapper class with methods to access different values the IMU provides
 from subsystems.imu import IMU
 
-#IMPORTING UTILITIES
+# import commands
+from commands.auto_shoot import AutoShoot
+from commands.manual_shoot import ManualShoot
+from commands.auto_amp import AutoAmp
+from commands.auto_intake import AutoIntake
+from commands.climb import Climb
 
-#import our PID function
-from utils.pid import PID
+# import autonomous code
+from commands.autonomous import Autonomous
 
-# import our constants which serve as "settings" for our robot/code
-# mainly IDs for CAN motors, sensors, and our controllers
+# import our constants which serve as "settings" for our robot/code, mainly IDs for CAN devices - motors, IMUs, and controllers
 from utils import constants
 
 # create our base robot class
 class MyRobot(wpilib.TimedRobot):
-    # initialize timers, motors, and sensors
-    # create reference to physical parts of the robot
+    # initialize motors and sensors - create references to physical parts of our robot
     def robotInit(self):
-        # create an instance of the wpilib.Timer class
-        # used for autotonous capabilities
-        # for example, because we have a timer, we can move the robot forwards for x amount of seconds
-        self.timer = wpilib.Timer()
-
-        # create reference to our Falcon 500 motors
-        # each Falcon 500 has a Talon FX motor controller
-        # we need to provide each instance of the Talon FX class with its corresponding CAN ID
-        # we configured the IDs using the Phoenix Tuner
+        # create reference to our Falcon 500 motors for driving
         self.front_right = phoenix5._ctre.WPI_TalonFX(constants.FRONT_RIGHT_ID)
         self.front_left = phoenix5._ctre.WPI_TalonFX(constants.FRONT_LEFT_ID)
         self.back_left = phoenix5._ctre.WPI_TalonFX(constants.BACK_LEFT_ID)
@@ -75,6 +38,12 @@ class MyRobot(wpilib.TimedRobot):
         self.front_right.setInverted(True)
         self.back_right.setInverted(True)
 
+
+        # create a reference to our IMU
+        self.imu_motor_controller = phoenix5._ctre.WPI_TalonSRX(constants.IMU_ID)
+        self.imu = IMU(self.imu_motor_controller)
+
+
         #create reference to our Falcon motors
         self.shooter_upper_motor = phoenix5._ctre.WPI_TalonFX(constants.SHOOTER_UPPER_MOTOR_ID)
         self.shooter_lower_motor = phoenix5._ctre.WPI_TalonFX(constants.SHOOTER_LOWER_MOTOR_ID)
@@ -82,12 +51,10 @@ class MyRobot(wpilib.TimedRobot):
         self.shooter_upper_motor.setInverted(True)
         self.shooter_lower_motor.setInverted(True)
 
+
         # create reference to our intake motor
         self.intake_motor = rev.CANSparkMax(constants.INTAKE_MOTOR_ID, rev.CANSparkLowLevel.MotorType.kBrushless)
 
-        # create a reference to our IMU
-        self.imu_motor_controller = phoenix5._ctre.WPI_TalonSRX(constants.IMU_ID)
-        self.imu = IMU(self.imu_motor_controller)
 
         #reference to the two arm motors that move it up and down
         self.arm_motor_left_front = rev.CANSparkMax(constants.ARM_LEFT_FRONT_ID, rev.CANSparkLowLevel.MotorType.kBrushless)
@@ -101,67 +68,78 @@ class MyRobot(wpilib.TimedRobot):
         self.arm_motor_left_back.setInverted(True)
 
 
+
         # reference to our arm IMU
         self.arm_imu_motor_controller = phoenix5._ctre.WPI_TalonSRX(constants.ARM_IMU_ID)
         self.arm_imu = IMU(self.arm_imu_motor_controller)
 
-        #REFERENCES/INSTANCES OF THE SUBSYSTEMS
-        #instance of the arm class that has methods for moving the arm
+
+        # instances of our subsystems - passing in references to motors, sensors, etc.
         self.arm = Arm(self.arm_motor_left_front, self.arm_motor_left_back, self.arm_motor_right_front, self.arm_motor_right_back, self.arm_imu)
-
-        #create an instance of our Intake class that contains methods for shooting
         self.intake = Intake(self.intake_motor)
-
-        # create an instance of our Drive class that contains methods for different modes of driving
         self.drive = Drive(self.front_right, self.front_left, self.back_left, self.back_right, self.imu)
-
-        self.networking = NetworkReciever()
-        
-        #create an instance of our shooter
         self.shooter = Shooter(self.shooter_lower_motor, self.shooter_upper_motor)
+        
+        
+        # instance of networking class to recieve information from raspberry pis
+        self.networking = NetworkReciever()
 
-        # create instance of our driver controller
-        # it is a logitech x3d pro flight joystick
+        # create instance of our driver controller (flight stick) and operator controller (xbox controller)
         self.driver_controller = wpilib.Joystick(constants.DRIVER_CONTROLLER_ID)
-
-        # create an instance of our operator controller
-        # it is an xbox controller at id constants.CONTROLLER_ID, which is 1
         self.operator_controller = wpilib.XboxController(constants.OPERATOR_CONTROLLER_ID)
 
-        #create an instance of our amping function
-        self.auto_amp = Auto_Amp(self.arm, self.drive, self.shooter, self.intake, self.imu, self.networking)
-
-        #create an instance for the auto shoot
+        #create instances of autonomous abilities for our robot
         self.auto_shoot = AutoShoot(self.arm, self.drive, self.shooter, self.intake, self.imu, self.networking)
+        self.auto_shoot_manual = ManualShoot(self.intake, self.shooter)
+        self.auto_amp = AutoAmp(self.arm, self.drive, self.shooter, self.intake, self.imu, self.networking)
+        self.auto_intake = AutoIntake(self.arm, self.drive, self.intake, self.imu, self.networking)
+        self.climb = Climb(self.arm)
 
-        # create instance of auto shoot class
-        self.auto_shoot_manual = AutoShootManual(self.intake, self.shooter)
-
-        #instance for the auto intake
-        self.auto_intake = Auto_Intake(self.arm, self.drive, self.intake, self.imu, self.networking)
-
-        # override variables  to prevent spinning the same motors in multiple places in the code
+        # override variables to enable/disable certain functionalities of our robot
         self.drive_override = False
         self.intake_override = False
         self.shoot_override = False
         self.arm_override = False
 
 
-        if self.arm_imu.is_ready(): print("arm_imu is in fact ready")
+
     # setup before our robot transitions to autonomous
     def autonomousInit(self):
-        pass
+        # print if our IMU is ready to be used
+        if self.arm_imu.is_ready(): print("arm_imu is in fact ready")
+
+        # create instance of our autonomous code
+        self.autonomous = Autonomous()
+
+
 
     # ran every 20 ms during autonomous mode
     def autonomousPeriodic(self):
         pass
 
+
+
     # setup before our robot transitions to teleop (where we control with a joystick or custom controller)
     def teleopInit(self):
-        pass
+        # print if our IMU is ready to be used
+        if self.arm_imu.is_ready(): print("arm_imu is in fact ready")
         
+
+
     # ran every 20 ms during teleop
     def teleopPeriodic(self):
+        # X arm inside chassis
+        # A auto amp
+        # B auto speaker
+        # Y intake
+        # UP block
+        # DOWN source arm position (spin intake too?)
+        # RB reverse intake
+        # RT manual shoot
+        # LB ?
+        # ? reset arm IMU
+
+
         if not self.arm_override:
             # X button -> arm inside chassis
             if self.operator_controller.getXButton():
@@ -179,6 +157,7 @@ class MyRobot(wpilib.TimedRobot):
                 self.arm.shooting_override = False
                 self.arm.desired_position = 15
 
+            # set arm to desired angle
             self.arm.arm_to_angle(self.arm.desired_position)
 
 
@@ -209,7 +188,6 @@ class MyRobot(wpilib.TimedRobot):
             else:
                 self.shooter.stop()
                 
-        #WORKING DRIVE CODE
         if not self.drive_override:
             # get the x and y axis of the left joystick on our controller
             joystick_x = self.driver_controller.getX()
