@@ -1,5 +1,5 @@
 
-class Auto_Intake:
+class AutoIntake:
     def __init__(self, _arm, _drive, _intake, _imu, _networking):
         #stages for autonomously intaking
         self.INTAKE_IDLE = 0 #idle, not doing anything

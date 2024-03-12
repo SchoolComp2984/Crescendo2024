@@ -1,9 +1,6 @@
 # import math to use trig functions and PI
 import math
 
-#importing the PID for steering purposes.
-from utils.pid import PID
-
 # create our Drive class that contains methods for various modes of driving
 class Drive:
     def __init__(self, _front_right, _front_left, _back_left, _back_right, _imu):
@@ -17,14 +14,6 @@ class Drive:
         # create reference to our imu which is passed into our Drive class from robot.py
         self.imu = _imu
 
-        #initiating PID for the steering function, values are placeholders
-        #mainly used for turning the robot to a certain angle.
-        self.angle_p = 0.1
-        self.angle_i = 0.1
-        self.angle_d = 0.1
-        self.angling_val = 0
-        self.angling_pid = PID(self.angle_p, self.angle_i, self.angle_d, self.angling_val)
-
     # sets the motors on the left side of our robot to the same speed
     def set_left_speed(self, speed):
         self.front_left.set(speed)
@@ -35,52 +24,14 @@ class Drive:
         self.front_right.set(speed)
         self.back_right.set(speed)
 
-    #tank drive
-    #left joystick sets speed of left motors, right joystick sets speed of right motors
-    #primarily included just for turning the robot during shooting.
+    #tank drive - left joystick sets speed of left motors, right joystick sets speed of right motors
     def tank_drive(self, left_joystick, right_joystick):
         self.set_left_speed(left_joystick)
         self.set_right_speed(right_joystick)
 
-    #sets the robot to a specific angle using PIDs and tank drive
-    #NEEDS A LOT OF TESTING AND TINKERING
-    def set_robot_to_angle(self, desired_angle):
-        #current angle of the robot
-        current_angle = self.imu.get_yaw()
-        #make error a var
-        angle_error = desired_angle - current_angle
-
-        #run error through the pid for adjustments for each motor.
-        pid_adjustment = self.angling_pid.steer_pid(angle_error)
-
-        #sets left motors to the adjustment
-        self.set_left_speed(pid_adjustment)
-        
-        #sets right motors to the opposite adjustment
-        self.set_right_speed(-pid_adjustment)
-
-
-    # Evan coded this on Saturday 1/20
-    # behaves the same as arcade drive
-    # based on two x and y values from the SAME joystick
-    def evans_drive(self, x, y):
-        # calculates the speed the motors on the left and right sides of the robot need
-        left_speed = y+x
-        right_speed = y-x
-
-        # halves the speed for the left and right sides
-        # too fast to be testing indoors
-        left_speed = left_speed*0.5
-        right_speed = right_speed*0.5
-
-        # spins the left and right side motors
-        self.set_left_speed(left_speed)
-        self.set_right_speed(right_speed)
 
     # drivetrain that allows the robot to move forward/backward, sideways (strafing), and rotating in place
     # left joystick x and y for f/b/l/r and right joystick x for turning in place
-    # coded by Aram on Tuesday 1/23
-    # https://gm0.org/en/latest/docs/software/tutorials/mecanum-drive.html
     def mecanum_drive_robot_oriented(self, joystick_x, joystick_y, joystick_turning):
         # calculate speed of front left and back right motors
         # similar to arcade drive
