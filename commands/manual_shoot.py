@@ -1,6 +1,6 @@
 from wpilib import Timer
 
-class AutoShootManual:
+class ManualShoot:
     def __init__(self, _intake, _shooter):
         self.intake = _intake
         self.shooter = _shooter
