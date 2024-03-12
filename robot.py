@@ -2,9 +2,6 @@
 # wpilib contains useful classes and methods for interfacing with parts of our robot such as sensors and even the driver station
 import wpilib
 
-# import cscore for pov camera
-from cscore import CameraServer
-
 # phoenix5 contains classes and methods to inferface with motors distributed by cross the road electronics
 # third party library
 import phoenix5
@@ -16,11 +13,11 @@ import rev
 #import our Autonomous
 from commands.autonomous import Autonomous
 
-#import our shooting
-from commands.auto_shoot import Auto_Shoot
+#import our shooting (manual)
+from commands.auto_shoot import AutoShoot
 
 # import our auto shooting tested on 3/6 meeting
-from commands.auto_shoot_test import AutoShoot
+from commands.auto_shoot_manual import AutoShootManual
 
 #import our amp 
 from commands.auto_amp import Auto_Amp
@@ -51,9 +48,6 @@ from subsystems.imu import IMU
 #import our PID function
 from utils.pid import PID
 
-# import clamp function
-from utils.math_functions import clamp
-
 # import our constants which serve as "settings" for our robot/code
 # mainly IDs for CAN motors, sensors, and our controllers
 from utils import constants
@@ -67,9 +61,6 @@ class MyRobot(wpilib.TimedRobot):
         # used for autotonous capabilities
         # for example, because we have a timer, we can move the robot forwards for x amount of seconds
         self.timer = wpilib.Timer()
-
-        # init camera
-        #CameraServer.startAutomaticCapture()
 
         # create reference to our Falcon 500 motors
         # each Falcon 500 has a Talon FX motor controller
@@ -129,27 +120,31 @@ class MyRobot(wpilib.TimedRobot):
         #create an instance of our shooter
         self.shooter = Shooter(self.shooter_lower_motor, self.shooter_upper_motor)
 
-        # create an instance of our controller
-        # it is an xbox controller at id constants.CONTROLLER_ID, which is 0
-        self.controller = wpilib.XboxController(constants.CONTROLLER_ID)
+        # create instance of our driver controller
+        # it is a logitech x3d pro flight joystick
+        self.driver_controller = wpilib.Joystick(constants.DRIVER_CONTROLLER_ID)
+
+        # create an instance of our operator controller
+        # it is an xbox controller at id constants.CONTROLLER_ID, which is 1
+        self.operator_controller = wpilib.XboxController(constants.OPERATOR_CONTROLLER_ID)
 
         #create an instance of our amping function
         self.auto_amp = Auto_Amp(self.arm, self.drive, self.shooter, self.intake, self.imu, self.networking)
 
         #create an instance for the auto shoot
-        #self.auto_shoot = Auto_Shoot(self.arm, self.drive, self.shooter, self.intake, self.imu, self.networking)
+        self.auto_shoot = AutoShoot(self.arm, self.drive, self.shooter, self.intake, self.imu, self.networking)
 
         # create instance of auto shoot class
-        self.auto_shoot_test = AutoShoot(self.intake, self.shooter)
+        self.auto_shoot_manual = AutoShootManual(self.intake, self.shooter)
 
         #instance for the auto intake
         self.auto_intake = Auto_Intake(self.arm, self.drive, self.intake, self.imu, self.networking)
 
         # override variables  to prevent spinning the same motors in multiple places in the code
-        self.drive_override = True
-        self.intake_override = True
-        self.shoot_override = True
-        self.arm_override = True
+        self.drive_override = False
+        self.intake_override = False
+        self.shoot_override = False
+        self.arm_override = False
 
 
         if self.arm_imu.is_ready(): print("arm_imu is in fact ready")
@@ -167,103 +162,73 @@ class MyRobot(wpilib.TimedRobot):
         
     # ran every 20 ms during teleop
     def teleopPeriodic(self):
-
-        #CODE FOR TESTING THE ARM
         if not self.arm_override:
-            # arm all the way down = -82 deg ~use -80 deg
-            # arm amp postion (perp to all the way down) = -7 deg
+            # X button -> arm inside chassis
+            if self.operator_controller.getXButton():
+                self.arm.shooting_override = False
+                self.arm.desired_position = 60
+            
+            # Up arrow -> blocking arm position
+            elif self.operator_controller.getPOV() == 0:
+                self.arm.shooting_override = False
+                self.arm.desired_position = 77
 
-            #print(f"arm angle: {self.arm.get_arm_pitch()}")
-            
-            if self.controller.getAButton():
+            # Down arrow -> source arm position
+            # using for down position for now 3/11
+            elif self.operator_controller.getPOV() == 180:
                 self.arm.shooting_override = False
-                self.arm.desired_position = 40
-            elif self.controller.getYButton():
-                self.arm.shooting_override = False
-                self.arm.desired_position = -11
-            
+                self.arm.desired_position = 15
+
             self.arm.arm_to_angle(self.arm.desired_position)
 
 
-        #INTAKE AND SHOOTER TESTING
-        """
-        if not self.intake_shoot_override:
-            if self.controller.getXButton():
-                self.intake.intake_spin(1)
-            else:
-                self.intake.stop()
-
-            if self.controller.getYButton():
-                self.shooter.shooter_spin(1)
-            else:
-                self.shooter.stop()
-        """
-
         if not self.intake_override:
-            if self.controller.getRightBumper():
+            # Y button -> forward intake
+            if self.operator_controller.getYButton():
                 self.intake.intake_spin(1)
-            elif self.controller.getLeftBumper():
+
+            # Right Bumper -> reverse intake
+            elif self.operator_controller.getRightBumper():
                 self.intake.intake_spin(-1)
+
+            # if neither pressed, stop intake
             else:
                 self.intake.stop()
 
         if not self.shoot_override:
-            if self.controller.getBButton():
+            # B button -> auto shoot
+            if self.operator_controller.getBButton():
+                self.auto_shoot_manual.auto_shoot()
                 self.arm.shooting_override = True
-                self.auto_shoot_test.auto_shoot()
+
+            # Right Trigger -> manual shoot
+            elif self.operator_controller.getRightTriggerAxis() == 1:
+                self.auto_shoot.auto_shoot()
+
+            # neither are pressed, stop shooter
             else:
                 self.shooter.stop()
-
-
- 
                 
         #WORKING DRIVE CODE
-        # check if our drive is not overriden - we are not doing some autonomous task and in this case just want to drive around
         if not self.drive_override:
             # get the x and y axis of the left joystick on our controller
-            joystick_x = self.controller.getLeftX()
+            joystick_x = self.driver_controller.getX()
 
             # rember that y joystick is inverted
             # multiply by -1;
             # "up" on the joystick is -1 and "down" is 1
-            joystick_y = self.controller.getLeftY() * -1
+            joystick_y = self.driver_controller.getY() * -1
 
-            # get the x axis of the right joystick used for turning the robot in place
-            joystick_turning = self.controller.getRightX()
+            # get the twist of our driver joystick
+            joystick_turning = self.driver_controller.getTwist()
 
             # run field oriented drive based on joystick values
             self.drive.field_oriented_drive(joystick_x, joystick_y, joystick_turning)
             
-            # if we click the back button on our controller, reset the "zero" position on the yaw to our current angle
-            if self.controller.getBackButton():
+            # if we click button 11 on the flight stick, reset the IMU yaw
+            if self.driver_controller.getRawButton(11):
                 self.imu.reset_yaw()
-        # else means that the drive is overriden and in this case want to run autonomous tasks
-        else:
-            pass
-            """#testing the turning to a certain angle
-            if self.controller.getLeftTriggerAxis() == 1:
-                self.drive.set_robot_to_angle(90)
-
-            elif self.controller.getRightTriggerAxis() == 1:
-                self.drive.set_robot_to_angle(270)
-
-            elif self.controller.getXButton():
-                self.drive.set_robot_to_angle(0)"""
-
-            
-        #if the left bumper is pressed, we shoot.
-        #if self.controller.getLeftBumperPressed(): self.shoot.autonomous_shoot()
         
-        #if the right bumber is pressed, we do the amp
-        #if self.controller.getRightBumperPressed(): self.auto_amp.autonomous_amp()
-
-        # print out the joystick values
-        # mainly used for debugging where we realized the y axis on the lefy joystick was inverted
-        #print(f"getLeftX: {self.controller.getLeftX()}, getLeftY: {self.controller.getLeftY()}, getRightX: {self.controller.getRightX()}, getRightY: {self.controller.getRightY()}")
-        
-        # print out the left and right triggers to see if they are pressed
-        #print(f"left trigger: {self.controller.getLeftTriggerAxis()}, right trigger: {self.controller.getRightTriggerAxis()}")
-
 # run our robot code
 if __name__ == "__main__":
     wpilib.run(MyRobot)

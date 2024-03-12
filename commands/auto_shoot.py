@@ -1,7 +1,7 @@
 #import math for arctan, wpilib for the timer
 import math, wpilib
 
-class Auto_Shoot:
+class AutoShoot:
     def __init__(self, _arm, _drive, _shooter, _intake, _imu, _networking):
         #different stages of shooting
         self.IDLE = 0 #idle, not doing anyting
@@ -11,7 +11,7 @@ class Auto_Shoot:
         self.FEED_NOTE = 4 #feed the note into the shooter motors, firing the note
         self.RETURN_ARM = 5 # move the arm back to position inside the robot
         self.FINISHED = 6 #done with everything
-        self.shooter_stage = self.SHOOTER_IDLE #set the current state to the idle state
+        self.shooter_stage = self.IDLE #set the current state to the idle state
 
         #reference to the arm that we passed in
         self.arm = _arm
@@ -38,7 +38,7 @@ class Auto_Shoot:
         self.shooter_spin_start_time = 0.0
         self.feeding_spin_start_time = 0.0
 
-    def autonomous_shoot(self):
+    def auto_shoot(self):
         if self.shooter_stage == self.IDLE:
             # check if ready, move to centering robot stage
             self.shooter_stage = self.CENTERING_ROBOT
@@ -47,15 +47,12 @@ class Auto_Shoot:
             # get the april tag position from the raspberry pi
             apriltag_x = self.networking.get_april_tag_data()[0]
 
-            # CHECK THAT IT IS THE SPEAKER APRIL TAG
-            # 7 is blue april tag and 4 is red april tag
-
             # if april tag is left of center, rotate left
             if apriltag_x < -5:
                 self.drive.tank_drive(-0.1, 0.1)
 
             # if april tag is right of center, rotate right
-            else if apriltag_x > 5:
+            elif apriltag_x > 5:
                 self.drive.tank_drive(0.1, -0.1)
                 
             # else (meaning we are somewhere in the middle), move to angling the arm
@@ -67,32 +64,32 @@ class Auto_Shoot:
             apriltag_distance = self.networking.get_april_tag_data()[2]
 
             # calculate height of speaker
-            speaker_height = 0
+            speaker_height = 2
 
             # calculate arm height
-            arm_height = 0
+            arm_height = 0.265
 
             # find total height
-            height = speaker_height + arm_height
+            height = speaker_height - arm_height
             
             # run arctan calculation to get angle
             arm_angle = math.atan2(height / apriltag_distance)
 
             # justify for angle of shooter relative to arm
-            justified_arm_angle = arm_angle - 0
+            justified_arm_angle = arm_angle - 57
             
             # move arm to the angle
-            self.arm.desired_arm_angle = justified_arm_angle
+            self.arm.desired_angle = justified_arm_angle
 
             # once arm is within a certain degree of tolerance, move to next step OR after certain amount of time if tolerance if not consistent
             if abs(self.arm.get_arm_pitch() - self.arm.desired_arm_angle) < 4:
                 self.shooter_stage = self.SHOOTER_MOTOR_SPIN
                 self.shooter_spin_start_time = self.timer.getFPGATimestamp()
+                
+                # shooting override to hold arm in place
+                self.arm.shooting_override = True
             
-            # set holding position and everything
-
-        
-        elif self.shooter_stage == self.SHO)TER_MOTOR_SPIN:
+        elif self.shooter_stage == self.SHOOTER_MOTOR_SPIN:
             # spin shooter motor for 1.5 seconds
             self.shooter.shooter_spin(1)
 
@@ -108,7 +105,7 @@ class Auto_Shoot:
             self.intake.intake_spin(1)
             
             # if 1.5 seconds is up, move to returning arm
-            if self.feeding_spin_start_time = self.timer.getFPGATimestamp():
+            if self.feeding_spin_start_time == self.timer.getFPGATimestamp():
                 self.shooter_stage = self.RETURN_ARM
 
         elif self.shooter_stage == self.RETURN_ARM:
@@ -121,3 +118,5 @@ class Auto_Shoot:
 
         elif self.shooter_stage == self.FINISHED:
             self.shooter_stage = self.IDLE
+
+            self.arm.shooting_override = False

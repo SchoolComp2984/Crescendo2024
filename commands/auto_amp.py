@@ -1,5 +1,3 @@
-# import driver station to get the alliance color that we're on.
-from wpilib import DriverStation
 
 class Auto_Amp:
     def __init__(self, _arm, _drive, _shooter, _intake, _imu, _networking):
@@ -12,9 +10,6 @@ class Auto_Amp:
         self.RETURN_ARM = 4
         self.AMP_DONE = 5
         self.amp_stage = self.AMP_IDLE
-
-        # create a reference to our driver station
-        self.driver_station = DriverStation
 
         #reference to the arm
         self.arm = _arm
@@ -43,14 +38,7 @@ class Auto_Amp:
         #IMPORTANT - DEPENDING ON WHETHER WE ARE RED OR BLUE, THE ANGLE THAT WE TURN WILL CHANGE.
         #NEEDS WORK
         #gets the alliance color through driver station data
-        alliance_color = self.driver_station.getAlliance()
-        if alliance_color.value() == DriverStation.Alliance.kRed:
-            #if red, turn left 90 degrees
-            self.drive.set_robot_to_angle(270)
-        elif alliance_color.value() == DriverStation.Alliance.kBlue:
-            #if blue turn right 90 degrees
-            self.drive.set_robot_to_angle(90)
-
+        
         #get apriltag data and put into an array
         self.apriltag_data = self.networking.get_apriltag_data()
 
