@@ -1,6 +1,9 @@
 # import math to use trig functions and PI
 import math
 
+# import interpolation from array function from math_functions.py
+from utils.math_functions import interpolation_array
+
 # create our Drive class that contains methods for various modes of driving
 class Drive:
     def __init__(self, _front_right, _front_left, _back_left, _back_right, _imu):
@@ -69,10 +72,30 @@ class Drive:
         self.back_left.set(back_left_speed)
         self.back_right.set(back_right_speed)
 
+    def joystick_interpolation(value):
+        # a list of points that will define a "curve" for interpolation
+    
+        arr = [ \
+        [-1,-0.5],\
+        [-.9,-0.25],\
+        [-.65,-0.167],\
+        [-.14,0],\
+        [.14,0],\
+        [.65,0.167],\
+        [.9,0.25],\
+        [1,0.5]]
+
+        return interpolation_array(value, arr)
+
     #field oriented drive
     #same mecanum drive train except the drive is no longer robot-oriented and is field-oriented
     #forwards = moves towards other side of field not in front of the robot
     def field_oriented_drive(self, joystick_x, joystick_y, rotation):
+        joystick_x = self.joystick_interpolation(joystick_x)
+        joystick_y = self.joystick_interpolation(joystick_y)
+
+        rotation = self.joystick_interpolation(rotation)
+        
         #gets angle of the robot compared to the true forwards that was set. stores it in the variable
         robot_angle_in_degrees = self.imu.get_yaw()
 
