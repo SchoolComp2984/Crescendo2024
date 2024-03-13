@@ -39,7 +39,7 @@ class Arm:
         self.arm_val = 0
 
         # init desired position value
-        self.desired_position = 85.5
+        self.desired_position = 85
 
         # init shooting override value
         self.shooting_override = False
@@ -80,8 +80,8 @@ class Arm:
             [15, 0.008],\
             [22.5, 0.007],\
             [30, 0.005],\
-            [60, 0.002],\
-            [90, 0.001]]
+            [60, 0.0033],\
+            [90, 0.0013]]
         
         return math_functions.interpolation_array(value, arr)
 

@@ -17,6 +17,7 @@ from commands.manual_shoot import ManualShoot
 from commands.auto_amp import AutoAmp
 from commands.auto_intake import AutoIntake
 from commands.climb import Climb
+from commands.descend import Descend
 
 # import autonomous code
 from commands.autonomous import Autonomous
@@ -94,6 +95,8 @@ class MyRobot(wpilib.TimedRobot):
         self.auto_amp = AutoAmp(self.arm, self.drive, self.shooter, self.intake, self.imu, self.networking)
         self.auto_intake = AutoIntake(self.arm, self.drive, self.intake, self.imu, self.networking)
         self.climb = Climb(self.arm)
+        self.descend = Descend(self.arm)
+
 
         # override variables to enable/disable certain functionalities of our robot
         self.drive_override = False
@@ -144,21 +147,20 @@ class MyRobot(wpilib.TimedRobot):
             # X button -> arm inside chassis
             if self.operator_controller.getXButton():
                 self.arm.shooting_override = False
-                self.arm.desired_position = 60
-            
-            # Up arrow -> blocking arm position
-            elif self.operator_controller.getPOV() == 0:
+                self.arm.desired_position = 78
+
+            if self.operator_controller.getPOV() == 0:
                 self.arm.shooting_override = False
-                self.arm.desired_position = 77
+                self.arm.desired_position = 60
 
             # Down arrow -> source arm position
             elif self.operator_controller.getPOV() == 180:
                 self.arm.shooting_override = False
-                self.arm.desired_position = 67
+                self.descend.auto_descend()
 
             # Flight Stick Trigger -> down position:
             # Change so it needs to be held down
-            elif self.drive_controller.getTrigger():
+            elif self.driver_controller.getTrigger():
                 self.arm.shooting_override = False
                 self.arm.desired_position = 15
 
@@ -203,7 +205,7 @@ class MyRobot(wpilib.TimedRobot):
             joystick_y = self.driver_controller.getY() * -1
 
             # get the twist of our driver joystick
-            joystick_turning = self.driver_controller.getTwist()
+            joystick_turning = self.driver_controller.getZ()
 
             # run field oriented drive based on joystick values
             self.drive.field_oriented_drive(joystick_x, joystick_y, joystick_turning)

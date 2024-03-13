@@ -47,6 +47,9 @@ class AutoShoot:
             # get the april tag position from the raspberry pi
             apriltag_x = self.networking.get_april_tag_data()[0]
 
+            if apriltag_x is None:
+                return
+
             # if april tag is left of center, rotate left
             if apriltag_x < -5:
                 self.drive.tank_drive(-0.1, 0.1)
