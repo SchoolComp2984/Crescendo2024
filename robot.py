@@ -98,11 +98,13 @@ class MyRobot(wpilib.TimedRobot):
         self.descend = Descend(self.arm)
 
 
-        # override variables to enable/disable certain functionalities of our robot
+        """# override variables to enable/disable certain functionalities of our robot
         self.drive_override = False
         self.intake_override = False
         self.shoot_override = False
-        self.arm_override = False
+        self.arm_override = False"""
+
+        self.override = False
 
 
 
@@ -121,7 +123,6 @@ class MyRobot(wpilib.TimedRobot):
         pass
 
 
-
     # setup before our robot transitions to teleop (where we control with a joystick or custom controller)
     def teleopInit(self):
         # print if our IMU is ready to be used
@@ -133,7 +134,35 @@ class MyRobot(wpilib.TimedRobot):
     def teleopPeriodic(self):
         # print arm data
         print(f"des.: {self.arm.desired_position}, angle: {self.arm.get_arm_pitch()}, gravity: {self.arm.gravity_compensation}")
+        
 
+        # how to reset if done ?
+
+        if self.operator_controller.getRightTriggerAxis() == 1:
+            self.manual_shoot.manual_shoot()
+            self.override = True
+            
+        elif self.operator_controller.getYButton():
+            self.auto_shoot.auto_shoot()
+            self.override = True
+
+        elif self.operator_controller.getBButton():
+            self.auto_amp.autonomous_amp()
+            self.override = True
+
+        elif self.operator_controller.getPOV() == 180:
+            self.descend.auto_descend()
+            self.override = True
+
+        else:
+            self.override = False
+
+        if not self.override:
+            pass
+            # regular controls
+
+
+        """
         if not self.arm_override:
             # UP -> blocking position
             if self.operator_controller.getPOV() == 0:
@@ -214,6 +243,7 @@ class MyRobot(wpilib.TimedRobot):
             # if we click button 11 on the flight stick, reset the IMU yaw
             if self.driver_controller.getRawButton(11):
                 self.imu.reset_yaw()
+        """
         
 # run our robot code
 if __name__ == "__main__":
