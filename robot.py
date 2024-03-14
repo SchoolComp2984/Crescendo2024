@@ -91,7 +91,7 @@ class MyRobot(wpilib.TimedRobot):
 
         #create instances of autonomous abilities for our robot
         self.auto_shoot = AutoShoot(self.arm, self.drive, self.shooter, self.intake, self.imu, self.networking)
-        self.auto_shoot_manual = ManualShoot(self.intake, self.shooter)
+        self.manual_shoot = ManualShoot(self.intake, self.shooter, self.arm)
         self.auto_amp = AutoAmp(self.arm, self.drive, self.shooter, self.intake, self.imu, self.networking)
         self.auto_intake = AutoIntake(self.arm, self.drive, self.intake, self.imu, self.networking)
         self.climb = Climb(self.arm)
@@ -131,50 +131,49 @@ class MyRobot(wpilib.TimedRobot):
 
     # ran every 20 ms during teleop
     def teleopPeriodic(self):
-        # X arm inside chassis
-        # A auto amp
-        # B auto speaker
-        # Y intake
-        # UP block
-        # DOWN source arm position (spin intake too?)
-        # RB reverse intake
-        # RT manual shoot
-        # LB ?
-        # ? reset arm IMU
-
+        # print arm data
+        print(f"des.: {self.arm.desired_position}, angle: {self.arm.get_arm_pitch()}, gravity: {self.arm.gravity_compensation}")
 
         if not self.arm_override:
-            # X button -> arm inside chassis
-            if self.operator_controller.getXButton():
-                self.arm.shooting_override = False
-                self.arm.desired_position = 78
-
+            # UP -> blocking position
             if self.operator_controller.getPOV() == 0:
                 self.arm.shooting_override = False
-                self.arm.desired_position = 60
+                self.arm.desired_position = 80
 
-            # Down arrow -> source arm position
-            elif self.operator_controller.getPOV() == 180:
+            # RIGHT -> inside chassis
+            if self.operator_controller.getPOV() == 90:
                 self.arm.shooting_override = False
-                self.descend.auto_descend()
+                self.arm.desired_position = 65
+
+            # DOWN -> ground intake position
+            elif self.operator_controller.getPOV() == 180:
+                self.descend.descending = True
+
+            # LEFT -> source arm position
+            elif self.operator_controller.getPOV() == 270:
+                self.arm.shooting_override = False
+                self.arm.desired_position = 70
 
             # Flight Stick Trigger -> down position:
-            # Change so it needs to be held down
-            elif self.driver_controller.getTrigger():
+            elif self.driver_controller.getTriggerPressed():
                 self.arm.shooting_override = False
                 self.arm.desired_position = 15
+
+            # check if we should be descending then run descend code
+            if self.descend.descending:
+                self.arm.shooting_override = False
+                self.descend.auto_descend()
 
             # set arm to desired angle
             self.arm.arm_to_angle(self.arm.desired_position)
 
-
         if not self.intake_override:
-            # Y button -> forward intake
-            if self.operator_controller.getYButton():
+            # RB -> forward intake
+            if self.operator_controller.getRightBumper():
                 self.intake.intake_spin(1)
 
-            # Right Bumper -> reverse intake
-            elif self.operator_controller.getRightBumper():
+            # LB -> reverse intake
+            elif self.operator_controller.getLeftBumper():
                 self.intake.intake_spin(-1)
 
             # if neither pressed, stop intake
@@ -182,19 +181,21 @@ class MyRobot(wpilib.TimedRobot):
                 self.intake.stop()
 
         if not self.shoot_override:
-            # B button -> auto shoot
-            if self.operator_controller.getBButton():
-                self.auto_shoot_manual.auto_shoot()
-                self.arm.shooting_override = True
+            # RT -> manual shoot
+            if self.operator_controller.getRightTriggerAxis() == 1:
+                self.manual_shoot.shooting = True
 
-            # Right Trigger -> manual shoot
-            elif self.operator_controller.getRightTriggerAxis() == 1:
+            # Y -> auto shoot
+            elif self.operator_controller.getYButton() == 1:
                 self.auto_shoot.auto_shoot()
 
             # neither are pressed, stop shooter
             else:
                 self.shooter.stop()
-                
+
+            if self.manual_shoot.shooting == True:
+                self.manual_shoot.manual_shoot()
+
         if not self.drive_override:
             # get the x and y axis of the left joystick on our controller
             joystick_x = self.driver_controller.getX()

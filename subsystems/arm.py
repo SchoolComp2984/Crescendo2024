@@ -121,8 +121,6 @@ class Arm:
         if not self.shooting_override:
             self.shooting_holding_value = motor_power_clamped
 
-        print(f"des.: {desired_angle}, err: {error}, angle: {current_angle}, gravity: {self.gravity_compensation}, pid.: {proportional}, pow: {motor_power_clamped}")
-
         #spin the motors based on calculated PID value or previously stored holding value
         if self.shooting_override:
             self.set_speed(self.shooting_holding_value)

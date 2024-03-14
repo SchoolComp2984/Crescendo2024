@@ -13,14 +13,15 @@ class Descend:
 
         self.timer = Timer()
         self.transition_delay_start_time = 0.0
-        self.end_delay_start_time = 0.0
+
+        self.descending = False
 
     def auto_descend(self):
         if self.stage == self.IDLE:
             self.stage = self.MIDDLE
 
         elif self.stage == self.MIDDLE:
-            self.arm.desired_position = 15
+            self.arm.desired_position = 10
 
             if abs(self.arm.get_arm_pitch() - self.arm.desired_position) < 8:
                 self.stage = self.DELAY
@@ -33,11 +34,10 @@ class Descend:
         elif self.stage == self.DOWN:
             self.arm.desired_position = -10
 
-            if abs(self.arm.get_arm_pitch() - self.arm.desired_position) < 5:
+            if abs(self.arm.get_arm_pitch() + 1) < 5:
                 self.stage = self.FINISHED
-                self.end_delay_start_time = self.timer.getFPGATimestamp()
 
         elif self.stage == self.FINISHED:
-            if self.end_delay_start_time + 1 < self.timer.getFPGATimestamp():
-                self.stage = self.IDLE
+            self.stage = self.IDLE
+            self.descending = False
 

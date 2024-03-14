@@ -72,7 +72,7 @@ class Drive:
         self.back_left.set(back_left_speed)
         self.back_right.set(back_right_speed)
 
-    def joystick_interpolation(value):
+    def joystick_interpolation(self, value):
         # a list of points that will define a "curve" for interpolation
     
         arr = [ \
@@ -122,7 +122,7 @@ class Drive:
         front_right_speed = (rotated_y-rotated_x-rotation)/scale_factor
         
         #since we're testing the robot inside, we don't want it to go full speed, so the motors are multiplied by a decimal
-        multiplier = 0.6
+        multiplier = 0.7
         front_left_speed = front_left_speed*multiplier
         front_right_speed = front_right_speed*multiplier
         back_left_speed = back_left_speed*multiplier

@@ -47,6 +47,8 @@ class AutoShoot:
             # get the april tag position from the raspberry pi
             apriltag_x = self.networking.get_april_tag_data()[0]
 
+            print(f"apriltag position: {apriltag_x}")
+
             if apriltag_x is None:
                 return
 
@@ -66,10 +68,10 @@ class AutoShoot:
             # get distance of apriltag
             apriltag_distance = self.networking.get_april_tag_data()[2]
 
-            # calculate height of speaker
+            # height of speaker
             speaker_height = 2
 
-            # calculate arm height
+            # height of robot arm
             arm_height = 0.265
 
             # find total height
