@@ -17,8 +17,7 @@ class ManualShoot:
         self.revving_start_time = 0.0
         self.shooting_start_time = 0.0
 
-        self.shooting = False
-
+        self.running = False
 
     def manual_shoot(self):
         # check if we are idling and ready to start auto shoot
@@ -65,7 +64,6 @@ class ManualShoot:
 
         elif self.stage == self.FINISHED:
             # checks before going back blah blah
-            self.shooting = False
-            self.stage = self.IDLE
+            self.running = False
 
 

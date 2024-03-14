@@ -14,7 +14,7 @@ class Descend:
         self.timer = Timer()
         self.transition_delay_start_time = 0.0
 
-        self.descending = False
+        self.running = False
 
     def auto_descend(self):
         if self.stage == self.IDLE:
@@ -38,6 +38,4 @@ class Descend:
                 self.stage = self.FINISHED
 
         elif self.stage == self.FINISHED:
-            self.stage = self.IDLE
-            self.descending = False
-
+            self.running = False

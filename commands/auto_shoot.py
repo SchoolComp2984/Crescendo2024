@@ -11,7 +11,7 @@ class AutoShoot:
         self.FEED_NOTE = 4 #feed the note into the shooter motors, firing the note
         self.RETURN_ARM = 5 # move the arm back to position inside the robot
         self.FINISHED = 6 #done with everything
-        self.shooter_stage = self.IDLE #set the current state to the idle state
+        self.stage = self.IDLE #set the current state to the idle state
 
         #reference to the arm that we passed in
         self.arm = _arm
@@ -39,11 +39,11 @@ class AutoShoot:
         self.feeding_spin_start_time = 0.0
 
     def auto_shoot(self):
-        if self.shooter_stage == self.IDLE:
+        if self.stage == self.IDLE:
             # check if ready, move to centering robot stage
-            self.shooter_stage = self.CENTERING_ROBOT
+            self.stage = self.CENTERING_ROBOT
 
-        elif self.shooter_stage == self.CENTERING_ROBOT:
+        elif self.stage == self.CENTERING_ROBOT:
             # get the april tag position from the raspberry pi
             apriltag_x = self.networking.get_april_tag_data()[0]
 
@@ -62,9 +62,9 @@ class AutoShoot:
                 
             # else (meaning we are somewhere in the middle), move to angling the arm
             else:
-                self.shooter_stage = self.ARM_TO_ANGLE
+                self.stage = self.ARM_TO_ANGLE
     
-        elif self.shooter_stage == self.ARM_TO_ANGLE:
+        elif self.stage == self.ARM_TO_ANGLE:
             # get distance of apriltag
             apriltag_distance = self.networking.get_april_tag_data()[2]
 
@@ -88,43 +88,43 @@ class AutoShoot:
 
             # once arm is within a certain degree of tolerance, move to next step OR after certain amount of time if tolerance if not consistent
             if abs(self.arm.get_arm_pitch() - self.arm.desired_arm_angle) < 4:
-                self.shooter_stage = self.SHOOTER_MOTOR_SPIN
+                self.stage = self.SHOOTER_MOTOR_SPIN
                 self.shooter_spin_start_time = self.timer.getFPGATimestamp()
                 
                 # shooting override to hold arm in place
                 self.arm.shooting_override = True
             
-        elif self.shooter_stage == self.SHOOTER_MOTOR_SPIN:
+        elif self.stage == self.SHOOTER_MOTOR_SPIN:
             # spin shooter motor for 1.5 seconds
             self.shooter.shooter_spin(1)
 
             # if 1.5 seconds is up, move to feeding
             if self.shooter_spin_start_time + 1.75 < self.timer.getFPGATimestamp():
-                self.shooter_stage = self.FEED_NOTE
+                self.stage = self.FEED_NOTE
                 self.feeding_spin_start_time = self.timer.getFPGATimestamp()
             
             
-        elif self.shooter_stage == self.FEED_NOTE:
+        elif self.stage == self.FEED_NOTE:
             # spin shooter and intake
             self.shooter.shooter_spin(1)
             self.intake.intake_spin(1)
             
             # if 1.5 seconds is up, move to returning arm
             if self.feeding_spin_start_time == self.timer.getFPGATimestamp():
-                self.shooter_stage = self.RETURN_ARM
+                self.stage = self.RETURN_ARM
 
-        elif self.shooter_stage == self.RETURN_ARM:
+        elif self.stage == self.RETURN_ARM:
             # move arm to position that is in the chassis
             self.arm.desired_position = 60
 
             # if within tolerance OR timer, move to finished
             if abs(self.arm.get_pitch() - self.arm.desired_arm_angle) < 4:
-                self.shooter_stage = self.FINISHED
+                self.stage = self.FINISHED
 
-        elif self.shooter_stage == self.FINISHED:
-            self.shooter_stage = self.IDLE
-
+        elif self.stage == self.FINISHED:
             self.arm.shooting_override = False
+            self.running = False
+
 
 
     def auto_shoot_interpolated(self):
