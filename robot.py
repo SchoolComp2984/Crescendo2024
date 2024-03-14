@@ -98,13 +98,16 @@ class MyRobot(wpilib.TimedRobot):
         self.descend = Descend(self.arm)
 
 
-        # override variables to enable/disable certain functionalities of our robot
+        """# override variables to enable/disable certain functionalities of our robot
         self.drive_override = False
         self.intake_override = False
         self.shoot_override = False
-        self.arm_override = False
+        self.arm_override = False"""
 
+        self.override = False
 
+        # switch to turn on or off drive
+        self.enable_drive = True
 
     # setup before our robot transitions to autonomous
     def autonomousInit(self):
@@ -121,7 +124,6 @@ class MyRobot(wpilib.TimedRobot):
         pass
 
 
-
     # setup before our robot transitions to teleop (where we control with a joystick or custom controller)
     def teleopInit(self):
         # print if our IMU is ready to be used
@@ -133,7 +135,133 @@ class MyRobot(wpilib.TimedRobot):
     def teleopPeriodic(self):
         # print arm data
         print(f"des.: {self.arm.desired_position}, angle: {self.arm.get_arm_pitch()}, gravity: {self.arm.gravity_compensation}")
+        
 
+        # how to reset if done ?
+
+        # RT -> manual shoot
+        if self.operator_controller.getRightTriggerAxis() == 1:
+            self.manual_shoot.running = True
+
+            if not self.manual_shoot.stage == self.manual_shoot.FINISHED:
+                self.override = True
+            else:
+                self.override = False
+        
+        # Y button -> auto shoot speaker
+        elif self.operator_controller.getYButton():
+            self.auto_shoot.running = True
+
+            if not self.auto_shoot.stage == self.auto_shoot.FINISHED:
+                self.override = True
+            else:
+                self.override = False
+
+        # stop shooter if no shooter buttons are being pressed
+        # none currently pressed -> no override
+        else:
+            self.shooter.stop()
+            self.override = False
+            
+
+        # B button -> auto amp
+        if self.operator_controller.getBButton():
+            self.auto_amp.running = True
+
+            if not self.auto_amp.stage == self.auto_amp.FINISHED:
+                self.override = True
+            else:
+                self.override = False
+
+        # Down arrow -> arm to intake position (descend)
+        elif self.operator_controller.getPOV() == 180:
+            self.descend.running = True
+
+            if not self.descend.stage == self.descend.FINISHED:
+                self.override = True
+            else:
+                self.override = False
+
+        # if none are pressed currenlty, do not override anything
+        else:
+            self.override = False
+
+
+        if self.manual_shoot.running == True:
+            self.manual_shoot.manual_shoot()
+
+        elif self.auto_shoot.running == True:
+            self.auto_shoot.auto_shoot()
+
+        elif self.auto_amp.running == True:
+            self.auto_amp.auto_amp()
+
+        elif self.descend.running == True:
+            self.descend.auto_descend()
+
+        # if we are not holding an auto button down, essentially
+        if not self.override:
+            # ---------------- ARM ---------------- 
+            # UP -> blocking position
+            if self.operator_controller.getPOV() == 0:
+                self.arm.shooting_override = False
+                self.arm.desired_position = 80
+
+            # RIGHT -> inside chassis
+            if self.operator_controller.getPOV() == 90:
+                self.arm.shooting_override = False
+                self.arm.desired_position = 65
+
+            # LEFT -> source arm position
+            elif self.operator_controller.getPOV() == 270:
+                self.arm.shooting_override = False
+                self.arm.desired_position = 70
+
+            # Flight Stick Trigger -> down position:
+            elif self.driver_controller.getTriggerPressed():
+                self.arm.shooting_override = False
+                self.arm.desired_position = 15
+
+            self.arm.arm_to_angle(self.arm.desired_position)
+
+
+            # ---------------- INTAKE ---------------- 
+
+            # RB -> forward intake
+            if self.operator_controller.getRightBumper():
+                self.intake.intake_spin(1)
+
+            # LB -> reverse intake
+            elif self.operator_controller.getLeftBumper():
+                self.intake.intake_spin(-1)
+
+            # if neither pressed, stop intake
+            else:
+                self.intake.stop()
+
+            # ---------------- DRIVE ---------------- 
+                
+            # check if drive is enabled
+            if self.enable_drive:
+                # get the x and y axis of the left joystick on our controller
+                joystick_x = self.driver_controller.getX()
+
+                # rember that y joystick is inverted
+                # multiply by -1;
+                # "up" on the joystick is -1 and "down" is 1
+                joystick_y = self.driver_controller.getY() * -1
+
+                # get the twist of our driver joystick
+                joystick_turning = self.driver_controller.getZ()
+
+                # run field oriented drive based on joystick values
+                self.drive.field_oriented_drive(joystick_x, joystick_y, joystick_turning)
+                
+                # if we click button 11 on the flight stick, reset the IMU yaw
+                if self.driver_controller.getRawButton(11):
+                    self.imu.reset_yaw()
+
+        """
         if not self.arm_override:
             # UP -> blocking position
             if self.operator_controller.getPOV() == 0:
@@ -214,6 +342,7 @@ class MyRobot(wpilib.TimedRobot):
             # if we click button 11 on the flight stick, reset the IMU yaw
             if self.driver_controller.getRawButton(11):
                 self.imu.reset_yaw()
+        """
         
 # run our robot code
 if __name__ == "__main__":
