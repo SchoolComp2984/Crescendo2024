@@ -29,7 +29,7 @@ class ManualShoot:
             self.stage = self.stage = self.MOVING_ARM
 
         elif self.stage == self.MOVING_ARM:
-            self.arm.desired_position = 10
+            self.arm.desired_position = 30
             self.shooter.shooting_override = False
 
             if abs(self.arm.desired_position - self.arm.get_arm_pitch()) < 5:

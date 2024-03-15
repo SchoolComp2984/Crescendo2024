@@ -16,7 +16,6 @@ from commands.auto_shoot import AutoShoot
 from commands.manual_shoot import ManualShoot
 from commands.auto_amp import AutoAmp
 from commands.auto_intake import AutoIntake
-from commands.climb import Climb
 from commands.descend import Descend
 
 # import autonomous code
@@ -94,7 +93,6 @@ class MyRobot(wpilib.TimedRobot):
         self.manual_shoot = ManualShoot(self.intake, self.shooter, self.arm)
         self.auto_amp = AutoAmp(self.arm, self.drive, self.shooter, self.intake, self.imu, self.networking)
         self.auto_intake = AutoIntake(self.arm, self.drive, self.intake, self.imu, self.networking)
-        self.climb = Climb(self.arm)
         self.descend = Descend(self.arm)
 
 
@@ -115,7 +113,7 @@ class MyRobot(wpilib.TimedRobot):
         if self.arm_imu.is_ready(): print("arm_imu is in fact ready")
 
         # create instance of our autonomous code
-        self.autonomous = Autonomous()
+        self.autonomous = Autonomous(self.drive, self.arm, self.shooter, self.intake)
 
 
 
@@ -136,12 +134,11 @@ class MyRobot(wpilib.TimedRobot):
         # print arm data
         print(f"des.: {self.arm.desired_position}, angle: {self.arm.get_arm_pitch()}, gravity: {self.arm.gravity_compensation}")
         
-
-        # how to reset if done ?
-
         # RT -> manual shoot
         if self.operator_controller.getRightTriggerAxis() == 1:
-            self.manual_shoot.running = True
+            if self.manual_shoot.running == False:
+                self.manual_shoot.running = True
+                self.manual_shoot.stage = self.manual_shoot.IDLE
 
             if not self.manual_shoot.stage == self.manual_shoot.FINISHED:
                 self.override = True
@@ -150,7 +147,9 @@ class MyRobot(wpilib.TimedRobot):
         
         # Y button -> auto shoot speaker
         elif self.operator_controller.getYButton():
-            self.auto_shoot.running = True
+            if self.auto_shoot.running == False:
+                self.auto_shoot.running = True
+                self.auto_shoot.stage = self.auto_shoot.IDLE
 
             if not self.auto_shoot.stage == self.auto_shoot.FINISHED:
                 self.override = True
@@ -166,7 +165,9 @@ class MyRobot(wpilib.TimedRobot):
 
         # B button -> auto amp
         if self.operator_controller.getBButton():
-            self.auto_amp.running = True
+            if self.auto_amp.running == False:
+                self.auto_amp.running = True
+                self.auto_amp.stage = self.auto_amp.IDLE
 
             if not self.auto_amp.stage == self.auto_amp.FINISHED:
                 self.override = True
@@ -175,7 +176,9 @@ class MyRobot(wpilib.TimedRobot):
 
         # Down arrow -> arm to intake position (descend)
         elif self.operator_controller.getPOV() == 180:
-            self.descend.running = True
+            if self.descend.running == False:
+                self.descend.running = True
+                self.descend.stage = self.descend.IDLE
 
             if not self.descend.stage == self.descend.FINISHED:
                 self.override = True
@@ -221,6 +224,11 @@ class MyRobot(wpilib.TimedRobot):
             elif self.driver_controller.getTriggerPressed():
                 self.arm.shooting_override = False
                 self.arm.desired_position = 15
+
+            # A button -> Climb (move arm all the way down)
+            elif self.operator_controller.getAButton():
+                self.arm.desired_position = 0
+            
 
             self.arm.arm_to_angle(self.arm.desired_position)
 

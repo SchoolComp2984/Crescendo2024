@@ -1,5 +1,8 @@
-#import math for arctan, wpilib for the timer
-import math, wpilib
+#import math for arctan
+import math
+
+# import wpilib timer
+from wpilib import Timer
 
 class AutoShoot:
     def __init__(self, _arm, _drive, _shooter, _intake, _imu, _networking):
@@ -25,18 +28,17 @@ class AutoShoot:
         #reference to the intake so we can use the intake motors
         self.intake = _intake
 
-        #reference to the imu
-        self.imu = _imu
-
         #reference to networking
         self.networking = _networking
         
         #timer to track how long motors have been spinning and if we can move on to the next stage.
-        self.timer = wpilib.Timer()
+        self.timer = Timer()
 
         # initialize shooter and intake spin start times
         self.shooter_spin_start_time = 0.0
         self.feeding_spin_start_time = 0.0
+
+        self.running = False
 
     def auto_shoot(self):
         if self.stage == self.IDLE:
@@ -95,10 +97,10 @@ class AutoShoot:
                 self.arm.shooting_override = True
             
         elif self.stage == self.SHOOTER_MOTOR_SPIN:
-            # spin shooter motor for 1.5 seconds
+            # spin shooter motor for 1.75 seconds
             self.shooter.shooter_spin(1)
 
-            # if 1.5 seconds is up, move to feeding
+            # if 1.75 seconds is up, move to feeding
             if self.shooter_spin_start_time + 1.75 < self.timer.getFPGATimestamp():
                 self.stage = self.FEED_NOTE
                 self.feeding_spin_start_time = self.timer.getFPGATimestamp()
@@ -110,7 +112,7 @@ class AutoShoot:
             self.intake.intake_spin(1)
             
             # if 1.5 seconds is up, move to returning arm
-            if self.feeding_spin_start_time == self.timer.getFPGATimestamp():
+            if self.feeding_spin_start_time + 1.5 < self.timer.getFPGATimestamp():
                 self.stage = self.RETURN_ARM
 
         elif self.stage == self.RETURN_ARM:

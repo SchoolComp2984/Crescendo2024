@@ -11,7 +11,7 @@ class AutoAmp:
         self.MOTOR_SPIN = 3
         self.RETURN_ARM = 4
         self.FINISHED = 5
-        self.stage = self.AMP_IDLE
+        self.stage = self.IDLE
 
         #reference to the arm
         self.arm = _arm
@@ -37,7 +37,7 @@ class AutoAmp:
         # init start time variables
         self.motor_spin_start_time = 0.0
 
-        self.runnning = False
+        self.running = False
 
     def auto_amp(self):
         #status tracker that goes through all the different steps of amping
@@ -45,7 +45,10 @@ class AutoAmp:
             self.stage = self.ALIGN
 
         elif self.stage == self.ALIGN:
-            apriltag_x = self.networking.get_april_tag_data()[0]
+            apriltag_x = self.networking.get_apriltag_data()[0]
+
+            if apriltag_x is None:
+                return
 
             if apriltag_x < -8:
                 self.drive.mecanum_drive_robot_oriented(-0.3, 0, 0)

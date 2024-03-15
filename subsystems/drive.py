@@ -76,14 +76,14 @@ class Drive:
         # a list of points that will define a "curve" for interpolation
     
         arr = [ \
-        [-1,-0.5],\
-        [-.9,-0.25],\
-        [-.65,-0.167],\
+        [-1,-0.85],\
+        [-.9,-0.4],\
+        [-.65,-0.22],\
         [-.14,0],\
         [.14,0],\
-        [.65,0.167],\
-        [.9,0.25],\
-        [1,0.5]]
+        [.65,0.22],\
+        [.9,0.4],\
+        [1,0.85]]
 
         return interpolation_array(value, arr)
 
@@ -95,9 +95,13 @@ class Drive:
         joystick_y = self.joystick_interpolation(joystick_y)
 
         rotation = self.joystick_interpolation(rotation)
+
+        rotation *= 0.35
         
         #gets angle of the robot compared to the true forwards that was set. stores it in the variable
         robot_angle_in_degrees = self.imu.get_yaw()
+
+        print(robot_angle_in_degrees)
 
         #takes angle and converts into radians
         robot_angle_in_radians = robot_angle_in_degrees*math.pi/180
@@ -122,7 +126,7 @@ class Drive:
         front_right_speed = (rotated_y-rotated_x-rotation)/scale_factor
         
         #since we're testing the robot inside, we don't want it to go full speed, so the motors are multiplied by a decimal
-        multiplier = 0.7
+        multiplier = 1
         front_left_speed = front_left_speed*multiplier
         front_right_speed = front_right_speed*multiplier
         back_left_speed = back_left_speed*multiplier
