@@ -1,0 +1,27 @@
+"filename", "language", "Python", "JSON", "Markdown", "comment", "blank", "total"
+"/Users/aramsodhi/Desktop/Crescendo2024/.wpilib/wpilib_preferences.json", "JSON", 0, 1, 0, 0, 0, 1
+"/Users/aramsodhi/Desktop/Crescendo2024/README.md", "Markdown", 0, 0, 1, 0, 1, 2
+"/Users/aramsodhi/Desktop/Crescendo2024/commands/auto_amp.py", "Python", 48, 0, 0, 12, 24, 84
+"/Users/aramsodhi/Desktop/Crescendo2024/commands/auto_intake.py", "Python", 59, 0, 0, 11, 22, 92
+"/Users/aramsodhi/Desktop/Crescendo2024/commands/auto_shoot.py", "Python", 66, 0, 0, 45, 42, 153
+"/Users/aramsodhi/Desktop/Crescendo2024/commands/autonomous.py", "Python", 90, 0, 0, 16, 33, 139
+"/Users/aramsodhi/Desktop/Crescendo2024/commands/descend.py", "Python", 41, 0, 0, 0, 15, 56
+"/Users/aramsodhi/Desktop/Crescendo2024/commands/manual_shoot.py", "Python", 40, 0, 0, 13, 17, 70
+"/Users/aramsodhi/Desktop/Crescendo2024/robot.py", "Python", 187, 0, 0, 78, 96, 361
+"/Users/aramsodhi/Desktop/Crescendo2024/subsystems/arm.py", "Python", 76, 0, 0, 29, 43, 148
+"/Users/aramsodhi/Desktop/Crescendo2024/subsystems/drive.py", "Python", 75, 0, 0, 36, 29, 140
+"/Users/aramsodhi/Desktop/Crescendo2024/subsystems/imu.py", "Python", 16, 0, 0, 14, 6, 36
+"/Users/aramsodhi/Desktop/Crescendo2024/subsystems/intake.py", "Python", 7, 0, 0, 6, 2, 15
+"/Users/aramsodhi/Desktop/Crescendo2024/subsystems/networking.py", "Python", 15, 0, 0, 14, 7, 36
+"/Users/aramsodhi/Desktop/Crescendo2024/subsystems/shooter.py", "Python", 10, 0, 0, 0, 4, 14
+"/Users/aramsodhi/Desktop/Crescendo2024/tests/pyfrc_test.py", "Python", 5, 0, 0, 0, 2, 7
+"/Users/aramsodhi/Desktop/Crescendo2024/tests/vision_tests/arams_note_detection.py", "Python", 33, 0, 0, 28, 21, 82
+"/Users/aramsodhi/Desktop/Crescendo2024/tests/vision_tests/color1(works better).py", "Python", 14, 0, 0, 17, 10, 41
+"/Users/aramsodhi/Desktop/Crescendo2024/tests/vision_tests/color2 (doesnt work as well).py", "Python", 17, 0, 0, 15, 11, 43
+"/Users/aramsodhi/Desktop/Crescendo2024/tests/vision_tests/shape draft draft.py", "Python", 42, 0, 0, 33, 21, 96
+"/Users/aramsodhi/Desktop/Crescendo2024/tests/vision_tests/shape_detection.py", "Python", 18, 0, 0, 19, 14, 51
+"/Users/aramsodhi/Desktop/Crescendo2024/tests/vision_tests/thomas_shape_detection_draft.py", "Python", 40, 0, 0, 28, 18, 86
+"/Users/aramsodhi/Desktop/Crescendo2024/utils/constants.py", "Python", 15, 0, 0, 3, 9, 27
+"/Users/aramsodhi/Desktop/Crescendo2024/utils/math_functions.py", "Python", 16, 0, 0, 8, 5, 29
+"/Users/aramsodhi/Desktop/Crescendo2024/utils/pid.py", "Python", 33, 0, 0, 24, 14, 71
+"Total", "-", 963, 1, 1, 449, 466, 1880

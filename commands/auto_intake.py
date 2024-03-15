@@ -1,91 +1,79 @@
+from wpilib import Timer
 
 class AutoIntake:
-    def __init__(self, _arm, _drive, _intake, _imu, _networking):
-        #stages for autonomously intaking
-        self.INTAKE_IDLE = 0 #idle, not doing anything
-        self.FIND_NOTE = 1 #find the note position, turn so that we're facing the note.
-        self.MOVE_ARM = 2 #move the arm to intake position
-        self.INTAKE_NOTE = 3 #start spinning the intake motors
-        self.RESET_ARM = 4 #reset the arm to default position and stop the intake motors
-        self.INTAKE_DONE = 5 #done with intaking
-        self.intake_stage = self.INTAKE_IDLE
+    def __init__(self, _drive, _intake, _descend, _networking, _arm):
+        # create instance of wpilib timer
+        self.timer = Timer()
 
-        #reference the arm
-        self.arm = _arm
+        # stages that make up auto inake
+        self.IDLE = 0
+        self.ARM_DOWN = 1
+        self.ALIGNING = 2
+        self.DRIVE_AND_INTAKE = 4
+        self.FINISHED = 5
+        self.stage = self.IDLE
 
         #reference the drive
         self.drive = _drive
 
+        self.arm = _arm
+
+        self.descend = _descend
+
         #refence the intake
         self.intake = _intake
-
-        #reference the imu
-        self.imu = _imu
 
         #reference the networking for scanning the apriltag and the note
         self.networking = _networking
 
-        #intermediate variable that stores the note data so it can be accessed from anywhere
-        self.note_data = None
+        # init driving start time to 0
+        self.drive_and_intake_start_time = 0.0
 
-    #scans for the note, sees if we see a note.
-    def find_note(self):
-        #array of note data.
-        self.note_data = self.networking.get_note_data()
+        self.running = False
 
-        #if the array length is not zero (so it actually exists and we get data back)
-        if len(self.note_data) is not None:
-            self.note_x = self.note_data[0]
-            if abs(self.note_x) < 20: return True
-            elif self.note_x < -20:
-                self.drive.tank_drive(-.5 , .5)
-            elif self.note_x > 20:
-                self.drive.tank_drive(.5, -.5)
-    
-    def move_arm(self):
-        """
-        Move the arm to the intake position.
-        return true when done
-        """
-        pass
+    def auto_intake(self):
+        if self.stage == self.IDLE:
+            # perform checks
+            self.intake_stage == self.ARM_DOWN
 
-    #after the arm is in the right position
-    def intake_note(self):
-        self.intake.intake_spin(1)
-        self.drive.tank_drive(.3, .3)
-        self.note_distance  = self.note_data[2]
-        if self.note_distance < .05:
-            return True
+        elif self.intake_stage == self.ARM_DOWN:
+            self.descend.auto_descend()
 
-    def reset_arm_position(self):
-        """
-        Reset the arm to default position
-        return true when done
-        """
-        pass
+            if self.descend.stage == self.descend.FINISHED:
+                self.stage = self.ALIGNING
 
-    def autonomous_intake(self):
-        if self.intake_stage == self.INTAKE_IDLE:
-            self.intake_stage == self.FIND_NOTE
 
-        elif self.intake_stage == self.FIND_NOTE:
-            if self.find_note():
-                self.intake_stage == self.MOVE_ARM
+        elif self.stage == self.ALIGNING:
+            # x position of note that we need to check if the note is aligned (in the middle of the camera POV)
+            note_x = self.networking.get_note_data()[0]
 
-        elif self.intake_stage == self.MOVE_ARM:
-            if self.move_arm():
-                self.intake_stage == self.INTAKE_NOTE
+            # return if we don't see a note
+            if note_x is None:
+                return
+            
+            # if we are to the left, rotate left
+            if note_x < -5:
+                self.drive.tank_drive(-0.1, 0.1)
 
-        elif self.intake_stage == self.INTAKE_NOTE:
-            if self.intake_note():
-                self.intake_stage == self.RESET_ARM
+            # if we are to the right, rotate right
+            elif note_x > 5:
+                self.drive.tank_drive(0.1, -0.1)
 
-        elif self.intake_stage == self.RESET_ARM:
-            if self.reset_arm_position():
-                self.intake_stage == self.INTAKE_DONE
+            # if the note is aligned, move on to driving and intaking
+            else:
+                self.stage = self.DRIVE_AND_INTAKE
+                self.drive_and_intake_start_time = self.timer.getFPGATimestamp()
 
-        elif self.intake_stage == self.INTAKE_DONE:
-            self.intake_stage = self.INTAKE_IDLE
+        elif self.stage == self.DRIVE_AND_INTAKE:
+            # drive forward and spin intake motors
+            self.drive.tank_drive(0.4, 0.4)
+            self.intake.intake_spin(1)
+
+            if self.drive_and_intake_start_time + 2.5 < self.timer.getFPGATimestamp():
+                self.stage = self.FINISHED
+
+        elif self.stage == self.FINISHED:
+            self.running = False
 
         
 

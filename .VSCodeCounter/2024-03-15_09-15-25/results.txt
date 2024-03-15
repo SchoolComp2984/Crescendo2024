@@ -1,0 +1,59 @@
+Date : 2024-03-15 09:15:25
+Directory : /Users/aramsodhi/Desktop/Crescendo2024
+Total : 25 files,  965 codes, 449 comments, 466 blanks, all 1880 lines
+
+Languages
++----------+------------+------------+------------+------------+------------+
+| language | files      | code       | comment    | blank      | total      |
++----------+------------+------------+------------+------------+------------+
+| Python   |         23 |        963 |        449 |        465 |      1,877 |
+| JSON     |          1 |          1 |          0 |          0 |          1 |
+| Markdown |          1 |          1 |          0 |          1 |          2 |
++----------+------------+------------+------------+------------+------------+
+
+Directories
++-------------------------------------------------------------------------------------------+------------+------------+------------+------------+------------+
+| path                                                                                      | files      | code       | comment    | blank      | total      |
++-------------------------------------------------------------------------------------------+------------+------------+------------+------------+------------+
+| .                                                                                         |         25 |        965 |        449 |        466 |      1,880 |
+| . (Files)                                                                                 |          2 |        188 |         78 |         97 |        363 |
+| .wpilib                                                                                   |          1 |          1 |          0 |          0 |          1 |
+| commands                                                                                  |          6 |        344 |         97 |        153 |        594 |
+| subsystems                                                                                |          6 |        199 |         99 |         91 |        389 |
+| tests                                                                                     |          7 |        169 |        140 |         97 |        406 |
+| tests (Files)                                                                             |          1 |          5 |          0 |          2 |          7 |
+| tests/vision_tests                                                                        |          6 |        164 |        140 |         95 |        399 |
+| utils                                                                                     |          3 |         64 |         35 |         28 |        127 |
++-------------------------------------------------------------------------------------------+------------+------------+------------+------------+------------+
+
+Files
++-------------------------------------------------------------------------------------------+----------+------------+------------+------------+------------+
+| filename                                                                                  | language | code       | comment    | blank      | total      |
++-------------------------------------------------------------------------------------------+----------+------------+------------+------------+------------+
+| /Users/aramsodhi/Desktop/Crescendo2024/.wpilib/wpilib_preferences.json                    | JSON     |          1 |          0 |          0 |          1 |
+| /Users/aramsodhi/Desktop/Crescendo2024/README.md                                          | Markdown |          1 |          0 |          1 |          2 |
+| /Users/aramsodhi/Desktop/Crescendo2024/commands/auto_amp.py                               | Python   |         48 |         12 |         24 |         84 |
+| /Users/aramsodhi/Desktop/Crescendo2024/commands/auto_intake.py                            | Python   |         59 |         11 |         22 |         92 |
+| /Users/aramsodhi/Desktop/Crescendo2024/commands/auto_shoot.py                             | Python   |         66 |         45 |         42 |        153 |
+| /Users/aramsodhi/Desktop/Crescendo2024/commands/autonomous.py                             | Python   |         90 |         16 |         33 |        139 |
+| /Users/aramsodhi/Desktop/Crescendo2024/commands/descend.py                                | Python   |         41 |          0 |         15 |         56 |
+| /Users/aramsodhi/Desktop/Crescendo2024/commands/manual_shoot.py                           | Python   |         40 |         13 |         17 |         70 |
+| /Users/aramsodhi/Desktop/Crescendo2024/robot.py                                           | Python   |        187 |         78 |         96 |        361 |
+| /Users/aramsodhi/Desktop/Crescendo2024/subsystems/arm.py                                  | Python   |         76 |         29 |         43 |        148 |
+| /Users/aramsodhi/Desktop/Crescendo2024/subsystems/drive.py                                | Python   |         75 |         36 |         29 |        140 |
+| /Users/aramsodhi/Desktop/Crescendo2024/subsystems/imu.py                                  | Python   |         16 |         14 |          6 |         36 |
+| /Users/aramsodhi/Desktop/Crescendo2024/subsystems/intake.py                               | Python   |          7 |          6 |          2 |         15 |
+| /Users/aramsodhi/Desktop/Crescendo2024/subsystems/networking.py                           | Python   |         15 |         14 |          7 |         36 |
+| /Users/aramsodhi/Desktop/Crescendo2024/subsystems/shooter.py                              | Python   |         10 |          0 |          4 |         14 |
+| /Users/aramsodhi/Desktop/Crescendo2024/tests/pyfrc_test.py                                | Python   |          5 |          0 |          2 |          7 |
+| /Users/aramsodhi/Desktop/Crescendo2024/tests/vision_tests/arams_note_detection.py         | Python   |         33 |         28 |         21 |         82 |
+| /Users/aramsodhi/Desktop/Crescendo2024/tests/vision_tests/color1(works better).py         | Python   |         14 |         17 |         10 |         41 |
+| /Users/aramsodhi/Desktop/Crescendo2024/tests/vision_tests/color2 (doesnt work as well).py | Python   |         17 |         15 |         11 |         43 |
+| /Users/aramsodhi/Desktop/Crescendo2024/tests/vision_tests/shape draft draft.py            | Python   |         42 |         33 |         21 |         96 |
+| /Users/aramsodhi/Desktop/Crescendo2024/tests/vision_tests/shape_detection.py              | Python   |         18 |         19 |         14 |         51 |
+| /Users/aramsodhi/Desktop/Crescendo2024/tests/vision_tests/thomas_shape_detection_draft.py | Python   |         40 |         28 |         18 |         86 |
+| /Users/aramsodhi/Desktop/Crescendo2024/utils/constants.py                                 | Python   |         15 |          3 |          9 |         27 |
+| /Users/aramsodhi/Desktop/Crescendo2024/utils/math_functions.py                            | Python   |         16 |          8 |          5 |         29 |
+| /Users/aramsodhi/Desktop/Crescendo2024/utils/pid.py                                       | Python   |         33 |         24 |         14 |         71 |
+| Total                                                                                     |          |        965 |        449 |        466 |      1,880 |
++-------------------------------------------------------------------------------------------+----------+------------+------------+------------+------------+
