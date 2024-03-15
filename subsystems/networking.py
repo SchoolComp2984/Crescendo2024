@@ -21,6 +21,9 @@ class NetworkReciever():
         # get id of apriltag
         apriltag_id = self.dashboard.getNumber("tagread", None)
 
+        if apriltag_x is None:
+            return None
+
         # return the position in an array
         return [apriltag_x, apriltag_y, apriltag_distance, apriltag_id]
     
@@ -31,6 +34,9 @@ class NetworkReciever():
         note_x = self.dashboard.getNumber("note_x", None)
         note_y = self.dashboard.getNumber("note_y", None)
         note_distance = self.dashboard.getNumber("note_distance", None)
+
+        if note_x is None:
+            return None
 
         # return the x and y positions of the note in an array
         return [note_x, note_y, note_distance]
