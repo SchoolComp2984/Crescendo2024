@@ -42,13 +42,13 @@ class Descend:
                 self.delay_2_start_time = self.timer.getFPGATimestamp()
 
         elif self.stage == self.DELAY_2:
-            if self.delay_2_start_time + 0.4 < self.timer.getFPGATimestamp():
+            if self.delay_2_start_time + 0.5 < self.timer.getFPGATimestamp():
                 self.stage = self.DOWN_3
 
         elif self.stage == self.DOWN_3:
             self.arm.desired_position = -10
 
-            if abs(self.arm.get_arm_pitch() + 1) < 3:
+            if abs(self.arm.get_arm_pitch() + 1) < 4:
                 self.stage = self.FINISHED
 
         elif self.stage == self.FINISHED:

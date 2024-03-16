@@ -7,7 +7,7 @@ class ManualShoot:
         self.arm = _arm
 
         self.IDLE = 0
-        self.MOVING_ARM = 1
+        self.RAISING_ARM = 1
         self.REVVING = 2
         self.SHOOTING = 3
         self.FINISHED = 4
@@ -19,28 +19,30 @@ class ManualShoot:
 
         self.running = False
 
-    def manual_shoot(self):
+    def manual_shoot(self, angle):
         # check if we are idling and ready to start auto shoot
         if self.stage == self.IDLE:
             # stop spinning the intake and shooter motors
             self.intake.stop()
             self.shooter.stop()
 
-            self.stage = self.stage = self.MOVING_ARM
+            self.stage = self.stage = self.RAISING_ARM
 
-        elif self.stage == self.MOVING_ARM:
-            self.arm.desired_position = 30
-            self.shooter.shooting_override = False
+        elif self.stage == self.RAISING_ARM:
+            self.arm.desired_position = angle
 
-            if abs(self.arm.desired_position - self.arm.get_arm_pitch()) < 5:
-                self.stage = self.REVVING
+            if abs(self.arm.desired_position - self.arm.get_arm_pitch()) < 3:
                 self.revving_start_time = self.timer.getFPGATimestamp()
-                self.shooter.shooting_override = True
+
+                self.stage = self.REVVING
 
         # check if we are revving
         elif self.stage == self.REVVING:
             # rev shooter motors
             self.shooter.shooter_spin(1)
+            
+            # enable arm shooting override
+            self.arm.shooting_override = True
 
             # check if we have been spinning shooter motors for 1.75 seconds
             if self.revving_start_time + 1.75 < self.timer.getFPGATimestamp():

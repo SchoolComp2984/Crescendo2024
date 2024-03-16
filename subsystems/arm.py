@@ -1,20 +1,7 @@
-#importing libraries
-import phoenix5
-import rev
-
-#importing IMU function to use the yaw of the arm for moving it to a certain angle
-from subsystems.imu import IMU
-
-#importing the PID for moving the arm to the right place.
-from utils.pid import PID
-
 # import our clamp function
-from utils.math_functions import clamp
+from utils.math_functions import clamp, interpolation_array
 
-# import math
-from utils import math_functions
-
-# import math for PID
+# import math for cos functions
 import math
 
 class Arm:
@@ -30,7 +17,7 @@ class Arm:
         self.arm_imu = _arm_imu
 
         # proportional constant
-        self.kp = 0.0017
+        self.kp = 0.00192
 
         # init gravity compensation
         self.gravity_compensation = 0
@@ -64,6 +51,14 @@ class Arm:
         self.arm_motor_right_front.set(0)
         self.arm_motor_right_back.set(0)
 
+    def k_up_interpolation(self, value):
+        arr = [ \
+            [0, 0.0025],\
+            [25, 0.0021],\
+            [90, 0.0017]]
+        
+        return interpolation_array(value, arr)
+
     def kg_interpolation(self, value):
       arr = [ \
       [0, 0.17],\
@@ -72,7 +67,7 @@ class Arm:
       [90, 0.1]]
 
 
-      return math_functions.interpolation_array(value, arr)
+      return interpolation_array(value, arr)
 
     def k_down_interpolation(self, value):
         arr = [ \
@@ -83,7 +78,7 @@ class Arm:
             [60, 0.0033],\
             [90, 0.0013]]
         
-        return math_functions.interpolation_array(value, arr)
+        return interpolation_array(value, arr)
 
     def arm_to_angle(self, desired_angle):
         if desired_angle < -10 or desired_angle > 85:
@@ -98,7 +93,7 @@ class Arm:
         # calculate proportional term
         #pid_value = self.arm_pid.keep_integral(error)
 
-        k = self.kp
+        k = self.k_up_interpolation(current_angle)
 
         if (error < 0):
             k = self.k_down_interpolation(current_angle)
