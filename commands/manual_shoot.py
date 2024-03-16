@@ -1,10 +1,14 @@
 from wpilib import Timer
 
+from subsystems.arm import Arm
+from subsystems.shooter import Shooter
+from subsystems.intake import Intake
+
 class ManualShoot:
-    def __init__(self, _intake, _shooter, _arm):
-        self.intake = _intake
-        self.shooter = _shooter
+    def __init__(self, _arm, _shooter, _intake):
         self.arm = _arm
+        self.shooter = _shooter
+        self.intake = _intake
 
         self.IDLE = 0
         self.RAISING_ARM = 1
@@ -20,6 +24,9 @@ class ManualShoot:
         self.running = False
 
     def manual_shoot(self, angle):
+        if not self.running:
+            return
+
         # check if we are idling and ready to start auto shoot
         if self.stage == self.IDLE:
             # stop spinning the intake and shooter motors

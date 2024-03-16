@@ -4,8 +4,14 @@ import math
 # import wpilib timer
 from wpilib import Timer
 
+from subsystems.drive import Drive
+from subsystems.arm import Arm
+from subsystems.shooter import Shooter
+from subsystems.intake import Intake
+from subsystems.networking import NetworkReciever
+
 class AutoShoot:
-    def __init__(self, _arm, _drive, _shooter, _intake, _imu, _networking):
+    def __init__(self, _drive : Drive, _arm : Arm, _shooter : Shooter, _intake : Intake, _networking : NetworkReciever):
         #different stages of shooting
         self.IDLE = 0 #idle, not doing anyting
         self.CENTERING_ROBOT = 1 # move robot until apriltag is in center of screen
@@ -41,6 +47,9 @@ class AutoShoot:
         self.running = False
 
     def auto_shoot(self):
+        if not self.running:
+            return
+
         if self.stage == self.IDLE:
             # check if ready, move to centering robot stage
             self.stage = self.CENTERING_ROBOT
@@ -126,7 +135,6 @@ class AutoShoot:
         elif self.stage == self.FINISHED:
             self.arm.shooting_override = False
             self.running = False
-
 
 
     def auto_shoot_interpolated(self):

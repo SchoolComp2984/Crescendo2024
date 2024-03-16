@@ -1,7 +1,12 @@
 from utils.math_functions import interpolation_array
 
+from subsystems.drive import Drive
+from subsystems.networking import NetworkReciever
+
+from commands.manual_shoot import ManualShoot
+
 class InterpolatedShoot:
-    def __init__(self, _manual_shoot, _drive, _networking):
+    def __init__(self, _drive : Drive, _manual_shoot : ManualShoot, _networking : NetworkReciever):
         self.IDLE = 0
         self.ALIGNING = 1
         self.SHOOTING = 2
@@ -24,6 +29,9 @@ class InterpolatedShoot:
         return interpolation_array(value, arr)
 
     def interpolated_shoot(self):
+        if not self.running:
+            return
+
         if self.stage == self.IDLE:
             # perform checks
             self.stage = self.ALIGNING

@@ -1,8 +1,14 @@
 # import timer class we need from wpilib
 from wpilib import Timer
 
+from subsystems.drive import Drive
+from subsystems.arm import Arm
+from subsystems.shooter import Shooter
+from subsystems.intake import Intake
+from subsystems.networking import NetworkReciever
+
 class AutoAmp:
-    def __init__(self, _arm, _drive, _shooter, _intake, _imu, _networking):
+    def __init__(self, _drive : Drive, _arm : Arm, _shooter : Shooter, _intake : Intake, _networking : NetworkReciever):
         # stages for using the amp.
         #iterating through these stages with a tracker that will move on to the next stage after the current one is finished.
         self.IDLE = 0
@@ -13,22 +19,10 @@ class AutoAmp:
         self.FINISHED = 5
         self.stage = self.IDLE
 
-        #reference to the arm
-        self.arm = _arm
-
-        #reference to the drive
         self.drive = _drive
-
-        #reference to the shooter
+        self.arm = _arm
         self.shooter = _shooter
-        
-        #reference to the intake
         self.intake = _intake
-
-        #referencing imu
-        self.imu = _imu
-
-        #referencing networking
         self.networking = _networking
 
         # create instance of timer
@@ -40,6 +34,9 @@ class AutoAmp:
         self.running = False
 
     def auto_amp(self):
+        if not self.running:
+            return
+
         #status tracker that goes through all the different steps of amping
         if self.stage == self.IDLE:
             self.stage = self.ALIGN

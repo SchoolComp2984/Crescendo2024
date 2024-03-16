@@ -1,12 +1,12 @@
-# import math to use trig functions and PI
 import math
-
-# import interpolation from array function from math_functions.py
 from utils.math_functions import interpolation_array
+
+from phoenix5._ctre import WPI_TalonFX
+from subsystems.imu import IMU
 
 # create our Drive class that contains methods for various modes of driving
 class Drive:
-    def __init__(self, _front_right, _front_left, _back_left, _back_right, _imu):
+    def __init__(self, _front_right : WPI_TalonFX, _front_left : WPI_TalonFX, _back_left : WPI_TalonFX, _back_right : WPI_TalonFX, _imu : IMU):
         # create refrences to our motors from the drive class
         # passed into the Drive class from robot.py
         self.front_right = _front_right
@@ -100,8 +100,6 @@ class Drive:
         
         #gets angle of the robot compared to the true forwards that was set. stores it in the variable
         robot_angle_in_degrees = self.imu.get_yaw()
-
-        print(robot_angle_in_degrees)
 
         #takes angle and converts into radians
         robot_angle_in_radians = robot_angle_in_degrees*math.pi/180

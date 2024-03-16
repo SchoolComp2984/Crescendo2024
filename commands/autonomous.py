@@ -1,8 +1,13 @@
 from wpilib import Timer
 
+from subsystems.drive import Drive
+from subsystems.arm import Arm
+from subsystems.shooter import Shooter
+from subsystems.intake import Intake
+
 #switches on robot that change values to run different autonomous codes for each.
 class Autonomous:
-    def __init__(self, _drive, _arm, _shooter, _intake):
+    def __init__(self, _drive : Drive, _arm : Arm, _shooter : Shooter, _intake : Intake):
         # create instance of wpilib timer for auto timing
         self.timer = Timer()
 

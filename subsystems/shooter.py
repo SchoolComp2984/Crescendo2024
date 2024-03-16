@@ -1,7 +1,9 @@
 from wpilib import Timer
 
+from phoenix5._ctre import WPI_TalonFX
+
 class Shooter:
-    def __init__(self, _shooter_lower_motor, _shooter_upper_motor):
+    def __init__(self, _shooter_lower_motor : WPI_TalonFX, _shooter_upper_motor : WPI_TalonFX):
         self.shooter_lower_motor = _shooter_lower_motor
         self.shooter_upper_motor = _shooter_upper_motor
 

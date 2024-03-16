@@ -10,6 +10,7 @@ from subsystems.networking import NetworkReciever
 from subsystems.intake import Intake
 from subsystems.arm import Arm
 from subsystems.imu import IMU
+from subsystems.color_sensor import ColorSensor
 
 # import commands
 from commands.interpolated_shoot import InterpolatedShoot
@@ -17,6 +18,7 @@ from commands.manual_shoot import ManualShoot
 from commands.auto_amp import AutoAmp
 from commands.auto_intake import AutoIntake
 from commands.descend import Descend
+from commands.climb import Climb
 
 # import autonomous code
 from commands.autonomous import Autonomous
@@ -74,13 +76,16 @@ class MyRobot(wpilib.TimedRobot):
         self.arm_imu = IMU(self.arm_imu_motor_controller)
 
 
+        # reference to the color sensor inside our intake
+        self.color_sensor_reference = rev.ColorSensorV3(wpilib.I2C.Port(0))
+
         # instances of our subsystems - passing in references to motors, sensors, etc.
         self.arm = Arm(self.arm_motor_left_front, self.arm_motor_left_back, self.arm_motor_right_front, self.arm_motor_right_back, self.arm_imu)
         self.intake = Intake(self.intake_motor)
         self.drive = Drive(self.front_right, self.front_left, self.back_left, self.back_right, self.imu)
         self.shooter = Shooter(self.shooter_lower_motor, self.shooter_upper_motor)
-        
-        
+        self.color_sensor = ColorSensor(self.color_sensor_reference)
+
         # instance of networking class to recieve information from raspberry pis
         self.networking = NetworkReciever()
 
@@ -89,31 +94,18 @@ class MyRobot(wpilib.TimedRobot):
         self.operator_controller = wpilib.XboxController(constants.OPERATOR_CONTROLLER_ID)
 
         #create instances of autonomous abilities for our robot
-        self.manual_shoot = ManualShoot(self.intake, self.shooter, self.arm)
-        self.auto_shoot = InterpolatedShoot(self.manual_shoot, self.drive, self.networking)
-        self.auto_amp = AutoAmp(self.arm, self.drive, self.shooter, self.intake, self.imu, self.networking)
-        self.auto_intake = AutoIntake(self.arm, self.drive, self.intake, self.imu, self.networking)
+        self.manual_shoot = ManualShoot(self.arm, self.shooter, self.intake)
+        self.auto_shoot = InterpolatedShoot(self.drive, self.manual_shoot, self.networking)
+        self.auto_amp = AutoAmp(self.drive, self.arm, self.shooter, self.intake, self.networking)
         self.descend = Descend(self.arm)
-
-
-        """# override variables to enable/disable certain functionalities of our robot
-        self.drive_override = False
-        self.intake_override = False
-        self.shoot_override = False
-        self.arm_override = False"""
-
-        self.override = False
+        self.auto_intake = AutoIntake(self.drive, self.descend, self.intake, self.networking, self.color_sensor)
+        self.climb = Climb(self.arm)
 
         # switch to turn on or off drive
         self.enable_drive = True
 
-        self.climbing = False
-
     # setup before our robot transitions to autonomous
     def autonomousInit(self):
-        # print if our IMU is ready to be used
-        if self.arm_imu.is_ready(): print("arm_imu is in fact ready")
-
         # create instance of our autonomous code
         self.autonomous = Autonomous(self.drive, self.arm, self.shooter, self.intake)
 
@@ -126,156 +118,68 @@ class MyRobot(wpilib.TimedRobot):
 
     # setup before our robot transitions to teleop (where we control with a joystick or custom controller)
     def teleopInit(self):
-        # print if our IMU is ready to be used
-        if self.arm_imu.is_ready(): print("arm_imu is in fact ready")
-
-        self.climbing = False
-        
-
+        pass
+    
 
     # ran every 20 ms during teleop
     def teleopPeriodic(self):
-        # print arm data
-        print(f"des.: {self.arm.desired_position}, angle: {self.arm.get_arm_pitch()}, gravity: {self.arm.gravity_compensation}")
-        
-        # RT -> manual shoot
-        if self.operator_controller.getRightTriggerAxis() == 1:
-            if self.manual_shoot.running == False:
-                self.manual_shoot.running = True
-                self.manual_shoot.stage = self.manual_shoot.IDLE
 
-            if not self.manual_shoot.stage == self.manual_shoot.FINISHED:
-                self.override = True
-            else:
-                self.override = False
-        
-        # Y button -> auto shoot speaker
-        elif self.operator_controller.getYButton():
-            if self.auto_shoot.running == False:
-                self.auto_shoot.running = True
-                self.auto_shoot.stage = self.auto_shoot.IDLE
+        # get control buttons
+        climb_button_pressed = self.operator_controller.getAButton()
+        auto_amp_button_pressed = self.operator_controller.getBButton()
+        auto_intake_button_pressed = self.operator_controller.getXButton()
+        auto_shoot_button_pressed = self.operator_controller.getYButton()
+        manual_shoot_button_pressed = self.operator_controller.getRightTriggerAxis() == 1
+        intake_button_pressed = self.operator_controller.getRightBumper()
+        outtake_button_pressed = self.operator_controller.getLeftBumper()
+        amp_blocking_position_button_pressed = self.operator_controller.getPOV() == 0
+        inside_chassis_position_button_pressed = self.operator_controller.getPOV() == 90
+        intake_position_button_pressed = self.operator_controller.getPOV() == 180
+        hover_position_button_pressed = self.operator_controller.getPOV() == 270
+        under_stage_button_pressed = self.driver_controller.getTrigger()
+        reset_imu_button_pressed = self.driver_controller.getRawButton(11)
 
-            if not self.auto_shoot.stage == self.auto_shoot.FINISHED:
-                self.override = True
-            else:
-                self.override = False
-
-        # stop shooter if no shooter buttons are being pressed
-        # none currently pressed -> no override
+        if climb_button_pressed:
+            self.arm.set_speed(-1)
         else:
-            self.shooter.stop()
-            self.override = False
-            
+            self.arm.stop()
 
-        # B button -> auto amp
-        if self.operator_controller.getBButton():
-            if self.auto_amp.running == False:
-                self.auto_amp.running = True
-                self.auto_amp.stage = self.auto_amp.IDLE
-
-            if not self.auto_amp.stage == self.auto_amp.FINISHED:
-                self.override = True
-            else:
-                self.override = False
-
-        # Down arrow -> arm to intake position (descend)
-        elif self.operator_controller.getPOV() == 180:
-            if self.descend.running == False:
-                self.descend.running = True
-                self.descend.stage = self.descend.IDLE
-
-            if not self.descend.stage == self.descend.FINISHED:
-                self.override = True
-            else:
-                self.override = False
-
-        # if none are pressed currenlty, do not override anything
-        else:
-            self.override = False
-
-
-        if self.manual_shoot.running == True:
-            self.manual_shoot.manual_shoot(20)
-
-        elif self.auto_shoot.running == True:
-            self.auto_shoot.auto_shoot()
-
-        elif self.auto_amp.running == True:
+        """
+        if auto_amp_button_pressed:
             self.auto_amp.auto_amp()
 
-        elif self.descend.running == True:
-            self.descend.auto_descend()
+        elif auto_intake_button_pressed:
+            self.auto_intake.auto_intake()
 
-        # if we are not holding an auto button down, essentially
-        if not self.override:
-            # ---------------- ARM ---------------- 
-            # UP -> blocking position / amp position
-            if self.operator_controller.getPOV() == 0:
-                self.arm.shooting_override = False
-                self.arm.desired_position = 80
+        elif auto_shoot_button_pressed:
+            self.auto_shoot.interpolated_shoot()
+    """
 
-            # RIGHT -> speaker/hover position
-            if self.operator_controller.getPOV() == 90:
-                self.arm.shooting_override = False
-                self.arm.desired_position = 15
 
-            # LEFT -> source arm position / inside chassis position
-            elif self.operator_controller.getPOV() == 270:
-                self.arm.shooting_override = False
-                self.arm.desired_position = 70
+        
 
-            # Flight Stick Trigger -> down position:
-            elif self.driver_controller.getTriggerPressed():
-                self.arm.shooting_override = False
-                self.arm.desired_position = 15
 
-            # A button -> Climb (move arm all the way down)
-            elif self.operator_controller.getAButtonPressed():
-                self.climbing = True
-                self.arm.set_speed(-1)
+
+
+        # check if drive is enabled
+        if self.enable_drive:
+            # get the x and y axis of the left joystick on our controller
+            joystick_x = self.driver_controller.getX()
+
+            # rember that y joystick is inverted
+            # multiply by -1;
+            # "up" on the joystick is -1 and "down" is 1
+            joystick_y = self.driver_controller.getY() * -1
+
+            # get the twist of our driver joystick
+            joystick_turning = self.driver_controller.getZ()
+
+            # run field oriented drive based on joystick values
+            self.drive.field_oriented_drive(joystick_x, joystick_y, joystick_turning)
             
-            if not self.climbing:
-                self.arm.arm_to_angle(self.arm.desired_position)
-
-
-            # ---------------- INTAKE ---------------- 
-
-            if self.operator_controller.getXButton():
-                self.shooter.shooter_spin(0.4)
-
-            # RB -> forward intake
-            if self.operator_controller.getRightBumper():
-                self.intake.intake_spin(1)
-
-            # LB -> reverse intake
-            elif self.operator_controller.getLeftBumper():
-                self.intake.intake_spin(-1)
-
-            # if neither pressed, stop intake
-            else:
-                self.intake.stop()
-
-            # ---------------- DRIVE ---------------- 
-                
-            # check if drive is enabled
-            if self.enable_drive:
-                # get the x and y axis of the left joystick on our controller
-                joystick_x = self.driver_controller.getX()
-
-                # rember that y joystick is inverted
-                # multiply by -1;
-                # "up" on the joystick is -1 and "down" is 1
-                joystick_y = self.driver_controller.getY() * -1
-
-                # get the twist of our driver joystick
-                joystick_turning = self.driver_controller.getZ()
-
-                # run field oriented drive based on joystick values
-                self.drive.field_oriented_drive(joystick_x, joystick_y, joystick_turning)
-                
-                # if we click button 11 on the flight stick, reset the IMU yaw
-                if self.driver_controller.getRawButton(11):
-                    self.imu.reset_yaw()
+            # if we click button 11 on the flight stick, reset the IMU yaw
+            if self.driver_controller.getRawButton(11):
+                self.imu.reset_yaw()
         
 # run our robot code
 if __name__ == "__main__":

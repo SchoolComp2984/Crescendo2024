@@ -17,7 +17,7 @@ class Arm:
         self.arm_imu = _arm_imu
 
         # proportional constant
-        self.kp = 0.00192
+        self.kp = 0.0017
 
         # init gravity compensation
         self.gravity_compensation = 0
@@ -50,14 +50,6 @@ class Arm:
 
         self.arm_motor_right_front.set(0)
         self.arm_motor_right_back.set(0)
-
-    def k_up_interpolation(self, value):
-        arr = [ \
-            [0, 0.0025],\
-            [25, 0.0021],\
-            [90, 0.0017]]
-        
-        return interpolation_array(value, arr)
 
     def kg_interpolation(self, value):
       arr = [ \
@@ -93,7 +85,7 @@ class Arm:
         # calculate proportional term
         #pid_value = self.arm_pid.keep_integral(error)
 
-        k = self.k_up_interpolation(current_angle)
+        k = self.kp
 
         if (error < 0):
             k = self.k_down_interpolation(current_angle)
