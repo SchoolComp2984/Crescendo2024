@@ -14,7 +14,6 @@ from subsystems.color_sensor import ColorSensor
 
 # import commands
 from commands.interpolated_shoot import InterpolatedShoot
-from commands.manual_shoot import ManualShoot
 from commands.auto_amp import AutoAmp
 from commands.auto_intake import AutoIntake
 from commands.descend import Descend
@@ -75,6 +74,8 @@ class MyRobot(wpilib.TimedRobot):
         self.arm_imu_motor_controller = phoenix5._ctre.WPI_TalonSRX(constants.ARM_IMU_ID)
         self.arm_imu = IMU(self.arm_imu_motor_controller)
 
+        # reference to climb motor
+        self.cimb_motor = rev.CANSparkMax(constants.CLIMB_MOTOR_ID, rev.CANSparkLowLevel.MotorType.kBrushless)
 
         # reference to the color sensor inside our intake
         self.color_sensor_reference = rev.ColorSensorV3(wpilib.I2C.Port(0))
@@ -94,12 +95,11 @@ class MyRobot(wpilib.TimedRobot):
         self.operator_controller = wpilib.XboxController(constants.OPERATOR_CONTROLLER_ID)
 
         #create instances of autonomous abilities for our robot
-        self.manual_shoot = ManualShoot(self.arm, self.shooter, self.intake)
-        self.auto_shoot = InterpolatedShoot(self.drive, self.manual_shoot, self.networking)
+        self.auto_shoot = InterpolatedShoot(self.drive, self.arm, self.shooter, self.intake, self.networking)
         self.auto_amp = AutoAmp(self.drive, self.arm, self.shooter, self.intake, self.networking)
         self.descend = Descend(self.arm)
         self.auto_intake = AutoIntake(self.drive, self.descend, self.intake, self.networking, self.color_sensor)
-        self.climb = Climb(self.arm)
+        self.climb = Climb(self.climb_motor)
 
         # switch to turn on or off drive
         self.enable_drive = True
@@ -118,47 +118,93 @@ class MyRobot(wpilib.TimedRobot):
 
     # setup before our robot transitions to teleop (where we control with a joystick or custom controller)
     def teleopInit(self):
-        pass
+        self.climbing = False
     
 
     # ran every 20 ms during teleop
     def teleopPeriodic(self):
+        # print(f"desired position: {self.arm.desired_position}, current position: {self.arm.get_arm_pitch()}")
 
         # get control buttons
         climb_button_pressed = self.operator_controller.getAButton()
         auto_amp_button_pressed = self.operator_controller.getBButton()
         auto_intake_button_pressed = self.operator_controller.getXButton()
-        auto_shoot_button_pressed = self.operator_controller.getYButton()
-        manual_shoot_button_pressed = self.operator_controller.getRightTriggerAxis() == 1
+        shoot_button_pressed = self.operator_controller.getYButton()
+        amp_shoot_button_pressed = self.operator_controller.getRightTriggerAxis() == 1
         intake_button_pressed = self.operator_controller.getRightBumper()
-        outtake_button_pressed = self.operator_controller.getLeftBumper()
+        outtake_button_pressed = self.operator_controller.getLeftBumper() 
         amp_blocking_position_button_pressed = self.operator_controller.getPOV() == 0
         inside_chassis_position_button_pressed = self.operator_controller.getPOV() == 90
         intake_position_button_pressed = self.operator_controller.getPOV() == 180
         hover_position_button_pressed = self.operator_controller.getPOV() == 270
         under_stage_button_pressed = self.driver_controller.getTrigger()
         reset_imu_button_pressed = self.driver_controller.getRawButton(11)
+       
 
-        if climb_button_pressed:
-            self.arm.set_speed(-1)
+        # ---------- INTAKE ----------
+        if intake_button_pressed:
+            self.intake.intake_spin(1)
+
+        elif outtake_button_pressed:
+            self.intake.intake_spin(-1)
+
         else:
-            self.arm.stop()
+            self.intake.stop()
 
-        """
+
+        # auto functions
         if auto_amp_button_pressed:
             self.auto_amp.auto_amp()
 
-        elif auto_intake_button_pressed:
-            self.auto_intake.auto_intake()
+        else:
+            self.auto_amp.stage = self.auto_amp.IDLE
 
-        elif auto_shoot_button_pressed:
+
+            if auto_intake_button_pressed:
+                self.auto_intake.auto_intake()
+
+            else:
+                self.auto_intake.stage = self.auto_intake.IDLE
+
+                if intake_position_button_pressed:
+                    self.descend.descending = True
+
+
+
+        if self.descend.descending:
+            self.descend.auto_descend()
+
+
+
+        # ---------- SHOOTER ----------
+        if shoot_button_pressed:
             self.auto_shoot.interpolated_shoot()
-    """
 
+            if self.auto_shoot.stage == self.auto_shoot.FINISHED:
+                self.auto_shoot.stage = self.auto_shoot.IDLE
 
+        else:
+            self.auto_shoot.stage = self.auto_shoot.IDLE
+
+            if amp_shoot_button_pressed:
+                self.shooter.shooter_spin(0.4)
+
+            else:
+                self.shooter.stop()
         
 
+        # ---------- ARM CONTROLS ----------
+        if amp_blocking_position_button_pressed:
+            self.arm.desired_position = 80
 
+        elif inside_chassis_position_button_pressed:
+            self.arm.desired_position = 60
+
+        elif hover_position_button_pressed or under_stage_button_pressed:
+            self.arm.desired_position = 15
+
+        # set arm to position
+        self.arm.arm_to_angle(self.arm.desired_position)
 
 
         # check if drive is enabled
@@ -178,7 +224,7 @@ class MyRobot(wpilib.TimedRobot):
             self.drive.field_oriented_drive(joystick_x, joystick_y, joystick_turning)
             
             # if we click button 11 on the flight stick, reset the IMU yaw
-            if self.driver_controller.getRawButton(11):
+            if reset_imu_button_pressed:
                 self.imu.reset_yaw()
         
 # run our robot code

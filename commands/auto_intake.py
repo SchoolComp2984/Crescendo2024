@@ -22,12 +22,7 @@ class AutoIntake:
         self.networking = _networking
         self.color_sensor = _color_sensor
 
-        self.running = False
-
     def auto_intake(self):
-        if not self.running:
-            return
-
         if self.stage == self.IDLE:
             # perform checks
             self.intake_stage == self.ARM_DOWN
@@ -68,7 +63,7 @@ class AutoIntake:
                 self.stage = self.FINISHED
 
         elif self.stage == self.FINISHED:
-            self.running = False
+            self.stage = self.IDLE
 
         
 

@@ -44,12 +44,7 @@ class AutoShoot:
         self.shooter_spin_start_time = 0.0
         self.feeding_spin_start_time = 0.0
 
-        self.running = False
-
     def auto_shoot(self):
-        if not self.running:
-            return
-
         if self.stage == self.IDLE:
             # check if ready, move to centering robot stage
             self.stage = self.CENTERING_ROBOT
@@ -134,27 +129,6 @@ class AutoShoot:
 
         elif self.stage == self.FINISHED:
             self.arm.shooting_override = False
-            self.running = False
+            self.stage = self.IDLE
 
-
-    def auto_shoot_interpolated(self):
-        pass
-
-        # CALIBRATION:
-        # get move the robot to a known distance from the speaker
-        # find the angle the arm is at so that it can accurately shoot into the speaker from that distance
-        # put that data into a 2d array with each element in format [distance, angle]
-        # repeat until we are at a distance where we can not longer reliably see the apriltag
-
-        # check in IDLE if we can see an apriltag
-        # move so that it is centered
-        # get distance from apriltag
-        # interpolate between angles in the array to find what should be a correct angle for our arm
-        # move arm to that angle
-        # set holding arm power and override
-        # rev shooter motors
-        # feed the note from intake to shooter
-        # move the arm to the position we want it to be at after shooting
-        # done sequence
-    
     

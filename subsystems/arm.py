@@ -26,7 +26,7 @@ class Arm:
         self.arm_val = 0
 
         # init desired position value
-        self.desired_position = 85
+        self.desired_position = 87
 
         # init shooting override value
         self.shooting_override = False
@@ -73,7 +73,7 @@ class Arm:
         return interpolation_array(value, arr)
 
     def arm_to_angle(self, desired_angle):
-        if desired_angle < -10 or desired_angle > 85:
+        if desired_angle < -10 or desired_angle > 87:
             return
 
         # get our current arm angle

@@ -1,37 +1,43 @@
 from utils.math_functions import interpolation_array
 
 from subsystems.drive import Drive
+from subsystems.arm import Arm
+from subsystems.shooter import Shooter
+from subsystems.intake import Intake
 from subsystems.networking import NetworkReciever
 
-from commands.manual_shoot import ManualShoot
+from wpilib import Timer
 
 class InterpolatedShoot:
-    def __init__(self, _drive : Drive, _manual_shoot : ManualShoot, _networking : NetworkReciever):
+    def __init__(self, _drive : Drive, _arm : Arm, _shooter : Shooter, _intake : Intake, _networking : NetworkReciever):
         self.IDLE = 0
         self.ALIGNING = 1
-        self.SHOOTING = 2
-        self.FINISHED = 3
+        self.MOVING_ARM = 2
+        self.REVVING = 3
+        self.SHOOTING = 4
+        self.FINISHED = 5
         self.stage = self.IDLE
 
-        self.manual_shoot = _manual_shoot
+        self.timer = Timer()
+        self.revving_start_time = 0.0
+        self.shooting_start_time = 0.0
+
         self.drive = _drive
+        self.arm = _arm
+        self.shooter = _shooter
+        self.intake= _intake
         self.networking = _networking
 
         self.distance = -1
 
-        self.running = False
-
-    def kg_interpolation(self, value):
+    def angle_interpolation(self, value):
         arr = [ \
-        [0, 20],\
-        [8, 60]]
+        [0, 0],\
+        [8, 35]]
 
         return interpolation_array(value, arr)
 
     def interpolated_shoot(self):
-        if not self.running:
-            return
-
         if self.stage == self.IDLE:
             # perform checks
             self.stage = self.ALIGNING
@@ -54,17 +60,34 @@ class InterpolatedShoot:
             elif apriltag_x > 5:
                 self.drive.tank_drive(0.1, -0.1)
             else:
+                self.stage = self.MOVING_ARM
+
+        if self.stage == self.MOVING_ARM:
+            angle = self.angle_interpolation(self.distance)
+
+            self.arm.desired_position = angle
+
+            if abs(self.arm.desired_position - self.arm.get_arm_pitch()) < 4:
+                self.stage = self.REVVING
+                self.revving_start_time = self.timer.getFPGATimestamp()
+
+        elif self.stage == self.REVVING:
+            self.arm.shooting_override = True
+
+            self.shooter.shooter_spin(1)
+
+            if self.revving_start_time + 1.5 < self.timer.getFPGATimestamp():
                 self.stage = self.SHOOTING
+                self.shooting_start_time = self.timer.getFPGATimestamp()
 
         elif self.stage == self.SHOOTING:
-            if not self.manual_shoot.stage == self.manual_shoot.FINISHED:
-                angle = self.angle_interpolation(self.distance)
+            self.shooter.shooter_spin(1)
+            self.intake.intake_spin(1)
 
-                self.manual_shoot.manual_shoot(angle)
-            else:
+            if self.shooting_start_time + 1 < self.timer.getFPGATimestamp():
                 self.stage = self.FINISHED
 
         elif self.stage == self.FINISHED:
-            self.running = False
+            pass
 
             

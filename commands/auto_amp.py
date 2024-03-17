@@ -31,12 +31,7 @@ class AutoAmp:
         # init start time variables
         self.motor_spin_start_time = 0.0
 
-        self.running = False
-
     def auto_amp(self):
-        if not self.running:
-            return
-
         #status tracker that goes through all the different steps of amping
         if self.stage == self.IDLE:
             self.stage = self.ALIGN
@@ -77,4 +72,4 @@ class AutoAmp:
                 self.stage = self.FINISHED
 
         elif self.stage == self.FINISHED:
-            self.running = False
+            self.stage = self.IDLE
