@@ -1,5 +1,3 @@
-from wpilib import Timer
-
 from phoenix5._ctre import WPI_TalonFX
 
 class Shooter:

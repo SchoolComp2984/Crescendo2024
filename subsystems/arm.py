@@ -73,7 +73,7 @@ class Arm:
         return interpolation_array(value, arr)
 
     def arm_to_angle(self, desired_angle):
-        if desired_angle < -10 or desired_angle > 87:
+        if desired_angle < -10 or desired_angle > 90:
             return
 
         # get our current arm angle
@@ -108,6 +108,8 @@ class Arm:
         if not self.shooting_override:
             self.shooting_holding_value = motor_power_clamped
 
+
+        print(f"desired: {self.desired_position}, current: {current_angle}, pow: {motor_power_clamped}")
         #spin the motors based on calculated PID value or previously stored holding value
         if self.shooting_override:
             self.set_speed(self.shooting_holding_value)

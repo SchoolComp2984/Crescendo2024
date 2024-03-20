@@ -31,6 +31,8 @@ class AutoIntake:
             self.descend.auto_descend()
 
             if self.descend.stage == self.descend.FINISHED:
+                self.descend.stage = self.descend.IDLE
+                
                 self.stage = self.ALIGNING
 
 

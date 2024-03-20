@@ -5,6 +5,8 @@ class ColorSensor:
         self.color_sensor = _color_sensor
 
     def sees_note(self):
+        print(f"proximity: {self.color_sensor.getProximity()}")
+
         if self.color_sensor.getProximity() > 230:
             return True
         

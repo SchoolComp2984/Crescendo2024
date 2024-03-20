@@ -46,7 +46,7 @@ class Autonomous:
         elif self.stage == self.REVVING_1:
             self.shooter.shooter_spin(1)
             
-            if self.revving_1_start_time + 1 < self.timer.getFGPATimestamp():
+            if self.revving_1_start_time + 1 < self.timer.getFPGATimestamp():
                 self.stage = self.SHOOTING_1
                 self.shooting_1_start_time = self.timer.getFPGATimestamp()
 
