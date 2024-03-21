@@ -5,6 +5,9 @@ from subsystems.arm import Arm
 from subsystems.shooter import Shooter
 from subsystems.intake import Intake
 
+from phoenix5.sensors import AbsoluteSensorRange
+import phoenix5
+
 #switches on robot that change values to run different autonomous codes for each.
 class Autonomous:
     def __init__(self, _drive : Drive, _arm : Arm, _shooter : Shooter, _intake : Intake):
@@ -35,6 +38,27 @@ class Autonomous:
         self.shooting_2_start_time = 0.0
 
         self.turning_start_angle = 0.0
+
+        #self.drive.back_left.configIntegratedSensorAbsoluteRange(AbsoluteSensorRange.Unsigned_0_to_360)
+        #self.encoder = self.drive.back_left.getSensorCollection()
+
+
+    def backup_test(self):
+        if self.stage == self.IDLE:
+            self.stage = self.BACKING_UP
+            self.backing_up_start_time = self.timer.getFPGATimestamp()
+        
+        elif self.stage == self.BACKING_UP:
+            self.drive.set_velocity(10)
+
+            if self.backing_up_start_time + 2 < self.timer.getFPGATimestamp():
+                self.stage = self.FINISHED
+
+        elif self.stage == self.FINISHED:
+            pass
+
+
+
 
     # shoots pre-loaded note and backs up out of community
     def one_note_auto(self):

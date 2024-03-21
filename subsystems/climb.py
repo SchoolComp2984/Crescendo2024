@@ -3,9 +3,11 @@ from phoenix5._ctre import WPI_TalonSRX
 from wpilib import Timer
 
 class Climb:
-    def __init__(self, _climb_motor_left : WPI_TalonSRX, _climb_motor_right : WPI_TalonSRX):
-        self.climb_motor_left = _climb_motor_left
-        self.climb_motor_right = _climb_motor_right
+    def __init__(self, _climb_motor_left_front : WPI_TalonSRX, _climb_motor_right_front : WPI_TalonSRX, _climb_motor_left_back : WPI_TalonSRX, _climb_motor_right_back : WPI_TalonSRX):
+        self.climb_motor_left_front = _climb_motor_left_front
+        self.climb_motor_right_front = _climb_motor_right_front
+        self.climb_motor_left_back = _climb_motor_left_back
+        self.climb_motor_right_back = _climb_motor_right_back
 
         self.timer = Timer()
 
@@ -19,23 +21,11 @@ class Climb:
         self.retracting = False
 
     def climb_spin(self, speed):
-        self.climb_motor_left.set(speed)
-        self.climb_motor_right.set(-speed)
-    """
-    def retract_climb(self):
-        if self.stage == self.IDLE:
-            self.stage = self.RETRACTING
-            self.retracting_start_time = self.timer.getFPGATimestamp()
+        self.climb_motor_left_front.set(speed)
+        self.climb_motor_right_front.set(-speed)
+        self.climb_motor_left_back.set(speed)
+        self.climb_motor_right_back.set(-speed)
 
-        elif self.stage == self.RETRACTING:
-            self.climb_spin(-0.4)
-
-            if self.retracting_start_time + 1.5 < self.timer.getFPGATimestamp():
-                self.stage = self.RETRACTING
-
-        elif self.stage == self.FINISHED:
-            self.retracting = False
-    """
 
     def stop(self):
         self.climb_spin(0)

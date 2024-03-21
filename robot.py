@@ -14,6 +14,8 @@ from subsystems.color_sensor import ColorSensor
 from subsystems.climb import Climb
 
 
+from cscore import CameraServer
+
 # import commands
 from commands.auto_shoot import AutoShoot
 from commands.auto_amp import AutoAmp
@@ -30,6 +32,8 @@ from utils import constants
 class MyRobot(wpilib.TimedRobot):
     # initialize motors and sensors - create references to physical parts of our robot
     def robotInit(self):
+        CameraServer.startAutomaticCapture()
+
         # create reference to our Falcon 500 motors for driving
         self.front_right = phoenix5._ctre.WPI_TalonFX(constants.FRONT_RIGHT_ID)
         self.front_left = phoenix5._ctre.WPI_TalonFX(constants.FRONT_LEFT_ID)
@@ -76,8 +80,10 @@ class MyRobot(wpilib.TimedRobot):
         self.arm_imu = IMU(self.arm_imu_motor_controller)
 
         # reference to climb motors
-        self.climb_motor_left = phoenix5._ctre.WPI_TalonSRX(constants.CLIMB_MOTOR_LEFT_ID)
-        self.climb_motor_right = phoenix5._ctre.WPI_TalonSRX(constants.CLIMB_MOTOR_RIGHT_ID)
+        self.climb_motor_left_front = phoenix5._ctre.WPI_TalonSRX(constants.CLIMB_MOTOR_LEFT_FRONT_ID)
+        self.climb_motor_right_front = phoenix5._ctre.WPI_TalonSRX(constants.CLIMB_MOTOR_RIGHT_FRONT_ID)
+        self.climb_motor_left_back = phoenix5._ctre.WPI_TalonSRX(constants.CLIMB_MOTOR_LEFT_BACK_ID)
+        self.climb_motor_right_back = phoenix5._ctre.WPI_VictorSPX(constants.CLIMB_MOTOR_RIGHT_BACK_ID)
 
         # reference to the color sensor inside our intake
         #self.color_sensor_reference = rev.ColorSensorV3(wpilib.I2C.Port(0))
@@ -87,7 +93,7 @@ class MyRobot(wpilib.TimedRobot):
         self.intake = Intake(self.intake_motor)
         self.drive = Drive(self.front_right, self.front_left, self.back_left, self.back_right, self.imu)
         self.shooter = Shooter(self.shooter_lower_motor, self.shooter_upper_motor)
-        self.climb = Climb(self.climb_motor_left, self.climb_motor_right)
+        self.climb = Climb(self.climb_motor_left_front, self.climb_motor_right_front, self.climb_motor_left_back, self.climb_motor_right_back)
         #self.color_sensor = ColorSensor(self.color_sensor_reference)
 
         # instance of networking class to recieve information from raspberry pis
@@ -135,13 +141,13 @@ class MyRobot(wpilib.TimedRobot):
         amp_blocking_position_button_pressed = self.operator_controller.getPOV() == 0
         inside_chassis_position_button_pressed = self.operator_controller.getPOV() == 90
         intake_position_button_pressed = self.operator_controller.getPOV() == 180
-        under_stage_button_pressed = self.driver_controller.getTrigger()
+        under_stage_button_pressed = self.driver_controller.getTriggerPressed()
         reset_imu_button_pressed = self.driver_controller.getRawButton(11)
        
         # ---------- INTAKE ----------
         if intake_button_pressed:
             self.intake.intake_spin(1)
-
+                         
         elif outtake_button_pressed:
             self.intake.intake_spin(-1)
 
@@ -188,15 +194,19 @@ class MyRobot(wpilib.TimedRobot):
         # ---------- ARM CONTROLS ----------
         if amp_blocking_position_button_pressed:
             self.arm.desired_position = 80
+            self.arm.shooting_override = False
 
         elif inside_chassis_position_button_pressed:
             self.arm.desired_position = 60
+            self.arm.shooting_override = False
 
         elif under_stage_button_pressed:
             self.arm.desired_position = 15
+            self.arm.shooting_override = False
 
         # set arm to position
-        #self.arm.arm_to_angle(self.arm.desired_position)
+        print(f"desired: {self.arm.desired_position}")
+        self.arm.arm_to_angle(self.arm.desired_position)
  
         
         # check if drive is enabled

@@ -4,6 +4,8 @@ from utils.math_functions import interpolation_array
 from phoenix5._ctre import WPI_TalonFX
 from subsystems.imu import IMU
 
+import phoenix5
+
 # create our Drive class that contains methods for various modes of driving
 class Drive:
     def __init__(self, _front_right : WPI_TalonFX, _front_left : WPI_TalonFX, _back_left : WPI_TalonFX, _back_right : WPI_TalonFX, _imu : IMU):
@@ -26,6 +28,13 @@ class Drive:
     def set_right_speed(self, speed):
         self.front_right.set(speed)
         self.back_right.set(speed)
+
+    def set_velocity(self, rpm):
+        self.front_right.set(phoenix5._ctre.TalonFXControlMode.Velocity, rpm)
+        self.front_left.set(phoenix5._ctre.TalonFXControlMode.Velocity, rpm)
+        self.back_left.set(phoenix5._ctre.TalonFXControlMode.Velocity, rpm)
+        self.back_right.set(phoenix5._ctre.TalonFXControlMode.Velocity, rpm)
+
 
     #tank drive - left joystick sets speed of left motors, right joystick sets speed of right motors
     def tank_drive(self, left_joystick, right_joystick):
@@ -86,6 +95,8 @@ class Drive:
         [1,0.85]]
 
         return interpolation_array(value, arr)
+    
+
 
     #field oriented drive
     #same mecanum drive train except the drive is no longer robot-oriented and is field-oriented

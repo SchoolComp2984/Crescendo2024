@@ -17,7 +17,7 @@ class Arm:
         self.arm_imu = _arm_imu
 
         # proportional constant
-        self.kp = 0.0017
+        self.kp = 0.0019
 
         # init gravity compensation
         self.gravity_compensation = 0
@@ -109,7 +109,7 @@ class Arm:
             self.shooting_holding_value = motor_power_clamped
 
 
-        print(f"desired: {self.desired_position}, current: {current_angle}, pow: {motor_power_clamped}")
+        #print(f"desired: {self.desired_position}, current: {current_angle}, pow: {motor_power_clamped}")
         #spin the motors based on calculated PID value or previously stored holding value
         if self.shooting_override:
             self.set_speed(self.shooting_holding_value)
@@ -127,7 +127,7 @@ class Arm:
         gravity_compensation = math.cos(justifed_angle_radians) * self.kg_interpolation(current_angle)
 
         # calculate motor power
-        motor_power = clamp(gravity_compensation, -0.2, 0.2)
+        motor_power = clamp(gravity_compensation, -0.2, 0.23)
 
         # spin motors
         self.set_speed(motor_power)

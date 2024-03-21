@@ -13,12 +13,14 @@ class AutoShoot:
         self.IDLE = 0
         self.ALIGNING = 1
         self.MOVING_ARM = 2
-        self.REVVING = 3
-        self.SHOOTING = 4
-        self.FINISHED = 5
+        self.DELAY = 3
+        self.REVVING = 4
+        self.SHOOTING = 5
+        self.FINISHED = 6
         self.stage = self.IDLE
 
         self.timer = Timer()
+        self.delay_start_time = 0.0
         self.revving_start_time = 0.0
         self.shooting_start_time = 0.0
 
@@ -41,11 +43,19 @@ class AutoShoot:
         if self.stage == self.IDLE:
             # perform checks
             self.stage = self.MOVING_ARM
+            print("starting auto shoot")
 
         elif self.stage == self.MOVING_ARM:
-            self.arm.desired_position = 10
+            self.arm.desired_position = 15
 
             if abs(self.arm.desired_position - self.arm.get_arm_pitch()) < 5:
+                self.stage = self.DELAY
+                self.delay_start_time = self.timer.getFPGATimestamp()
+                print("done moving arm")
+
+        elif self.stage == self.DELAY:
+            if self.delay_start_time + 1 < self.timer.getFPGATimestamp() and abs(self.arm.desired_position - self.arm.get_arm_pitch()) < 4:
+                print("done delay")
                 self.stage = self.REVVING
                 self.revving_start_time = self.timer.getFPGATimestamp()
                 self.arm.shooting_override = True
@@ -55,6 +65,7 @@ class AutoShoot:
             self.shooter.shooter_spin(1)
 
             if self.revving_start_time + 1.5 < self.timer.getFPGATimestamp():
+                print("done revving starting shoot")
                 self.stage = self.SHOOTING
                 self.shooting_start_time = self.timer.getFPGATimestamp()
 
@@ -63,9 +74,11 @@ class AutoShoot:
             self.intake.intake_spin(1)
 
             if self.shooting_start_time + 1 < self.timer.getFPGATimestamp():
+                print("done shooting")
                 self.stage = self.FINISHED
 
         elif self.stage == self.FINISHED:
+            print("done auto shoot")
             pass
 
     def interpolated_shoot(self):
