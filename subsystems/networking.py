@@ -20,12 +20,13 @@ class NetworkReciever():
 
         # get id of apriltag
         apriltag_id = self.dashboard.getNumber("tagread", None)
+        sees_tag = self.dashboard.getBoolean("tagdetect", False)
 
         if apriltag_x is None:
             return None
 
         # return the position in an array
-        return [apriltag_x, apriltag_y, apriltag_distance, apriltag_id]
+        return [apriltag_x, apriltag_y, apriltag_distance, apriltag_id, sees_tag]
     
     # method to retrieve the x and y positions of the note from the camera
     # same as apriltags where (0, 0) is in th center of the screen

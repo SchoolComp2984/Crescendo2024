@@ -7,47 +7,38 @@ class Descend:
         self.arm = _arm
 
         self.IDLE = 0
-        self.DOWN_1 = 1
-        self.DELAY_1 = 2
-        self.DOWN_2 = 3
-        self.FINISHED = 6
+        self.TIPPING = 1
+        self.DOWN = 2
+        self.FINISHED = 3
         self.stage = self.IDLE
 
         self.timer = Timer()
-        self.delay_1_start_time = 0.0
-
+        self.tipping_start_time = 0.0
+        
         self.descending = False
 
-    def auto_descend(self):
+    def descend(self):
         if self.stage == self.IDLE:
-            self.stage = self.DOWN_1
-            #print("exiting idle")
+            if self.arm.get_arm_pitch() >= 70:
+                self.stage = self.TIPPING
+                self.tipping_start_time = self.timer.getFPGATimestamp()
+            else:
+                self.stage = self.DOWN
 
-        elif self.stage == self.DOWN_1:
-            self.arm.desired_position = 10
-            #print("moving to 15")
+        elif self.stage == self.TIPPING:
+            self.arm.set_speed(-0.02)
 
-            if abs(self.arm.get_arm_pitch() - self.arm.desired_position) < 8:
-                #print("within 8 degrees from 15, moving to delay")
-                self.delay_1_start_time = self.timer.getFPGATimestamp()
-                self.stage = self.DELAY_1
+            if self.arm.get_arm_pitch() <= 60:
+                self.stage = self.DOWN
 
-
-        elif self.stage == self.DELAY_1:
-            #print("starting delay")
-            if self.delay_1_start_time + 0.5 < self.timer.getFPGATimestamp():
-                self.stage = self.DOWN_2
-                #print("done delay")
-
-        elif self.stage == self.DOWN_2:
-            #print("moving down to -10")
-            self.arm.desired_position = -10
-
-            if abs(self.arm.get_arm_pitch()) < 4:
-                #print("within 4 degrees from 0")
+        elif self.stage == self.DOWN:
+            if self.arm.get_arm_pitch() > 5:
+                self.arm.set_speed(0.05)
+            
+            else:
                 self.stage = self.FINISHED
 
         elif self.stage == self.FINISHED:
-            #print("finished")
-            self.stage = self.IDLE
+            self.arm.desired_position = -15
             self.descending = False
+            self.stage = self.IDLE

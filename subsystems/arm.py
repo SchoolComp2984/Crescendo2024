@@ -17,7 +17,7 @@ class Arm:
         self.arm_imu = _arm_imu
 
         # proportional constant
-        self.kp = 0.0019
+        self.kp = 0.002
 
         # init gravity compensation
         self.gravity_compensation = 0
@@ -71,9 +71,9 @@ class Arm:
             [90, 0.0013]]
         
         return interpolation_array(value, arr)
-
+    
     def arm_to_angle(self, desired_angle):
-        if desired_angle < -10 or desired_angle > 90:
+        if desired_angle < -10 or desired_angle > 96:
             return
 
         # get our current arm angle

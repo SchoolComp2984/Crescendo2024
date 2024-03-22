@@ -1,4 +1,3 @@
-#PID
 class PID:
     #intializing the PID by making references to the values that are getting passed in
     def __init__(self, kp, ki, kd, val):

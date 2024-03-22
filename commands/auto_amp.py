@@ -13,10 +13,11 @@ class AutoAmp:
         #iterating through these stages with a tracker that will move on to the next stage after the current one is finished.
         self.IDLE = 0
         self.ALIGN = 1
-        self.MOVE_ARM = 2
-        self.MOTOR_SPIN = 3
-        self.RETURN_ARM = 4
-        self.FINISHED = 5
+        self.DRIVING = 2
+        self.MOVE_ARM = 3
+        self.MOTOR_SPIN = 4
+        self.RETURN_ARM = 5
+        self.FINISHED = 6
         self.stage = self.IDLE
 
         self.drive = _drive
@@ -47,6 +48,18 @@ class AutoAmp:
 
             elif apriltag_x > 8:
                 self.drive.mecanum_drive_robot_oriented(0.3, 0, 0)
+
+            else:
+                self.stage = self.DRIVING
+
+        elif self.stage == self.DRIVING:
+            apriltag_distance = self.networking.get_apriltag_data()[2]
+
+            if apriltag_distance is None:
+                return
+
+            if apriltag_distance > 0.2:
+                self.drive.tank_drive(0.2, 0.2)
 
             else:
                 self.stage = self.MOVE_ARM

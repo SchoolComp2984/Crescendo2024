@@ -15,14 +15,18 @@ class Autonomous:
         self.timer = Timer()
 
         self.IDLE = 0
-        self.REVVING_1 = 1
-        self.SHOOTING_1 = 2
-        self.BACKING_UP = 3
-        self.TURNING = 4
-        self.INTAKING = 5
-        self.REVVING_2 = 6
-        self.SHOOTING_2 = 7
-        self.FINISHED = 8
+        self.KICKSTAND = 1
+        self.DRIVING_FORWARD = 2
+        self.MOVING_ARM_1 = 3
+        self.REVVING_1 = 4
+        self.SHOOTING_1 = 5
+        self.DROPPING_ARM = 6
+        self.BACKING_UP = 7
+        self.MOVING_ARM_2 = 8
+        self.REVVING_2 = 9
+        self.SHOOTING_2 = 10
+        self.BACKING_UP_FINAL = 11
+        self.FINISHED = 12
         self.stage = self.IDLE
         
         self.drive = _drive
@@ -30,42 +34,43 @@ class Autonomous:
         self.shooter = _shooter
         self.intake = _intake
 
+        self.driving_forward_start_time = 0.0
         self.revving_1_start_time = 0.0
         self.shooting_1_start_time = 0.0
+        self.dropping_arm_start_time = 0.0
         self.backing_up_start_time = 0.0
         self.intaking_start_time = 0.0
         self.revving_2_start_time = 0.0
         self.shooting_2_start_time = 0.0
+        self.moving_arm_2_start_time = 0.0
+        self.backing_up_final_start_time = 0.0
 
-        self.turning_start_angle = 0.0
 
         #self.drive.back_left.configIntegratedSensorAbsoluteRange(AbsoluteSensorRange.Unsigned_0_to_360)
-        #self.encoder = self.drive.back_left.getSensorCollection()
+        #self.encoder = self.drive.back_left.getSensorCollection()        
 
-
-    def backup_test(self):
-        if self.stage == self.IDLE:
-            self.stage = self.BACKING_UP
-            self.backing_up_start_time = self.timer.getFPGATimestamp()
-        
-        elif self.stage == self.BACKING_UP:
-            self.drive.set_velocity(10)
-
-            if self.backing_up_start_time + 2 < self.timer.getFPGATimestamp():
-                self.stage = self.FINISHED
-
-        elif self.stage == self.FINISHED:
-            pass
-
-
-
-
-    # shoots pre-loaded note and backs up out of community
     def one_note_auto(self):
         if self.stage == self.IDLE:
             # perform checks
-            self.stage = self.REVVING_1
-            self.revving_1_start_time = self.timer.getFPGATimestamp()
+            self.stage = self.KICKSTAND
+            self.arm.shooting_override = False
+            print("releasing kickstand")
+
+        elif self.stage == self.KICKSTAND:
+            self.arm.desired_position = 95
+
+            if abs(self.arm.desired_position - self.arm.get_arm_pitch()) < 5:
+                self.stage = self.MOVING_ARM_1
+                print("moving arm")
+                self.arm.shooting_override = False   
+
+        elif self.stage == self.MOVING_ARM_1:
+            self.arm.desired_position = 18.5
+            
+            if abs(self.arm.desired_position - self.arm.get_arm_pitch()) < 5:
+                self.stage = self.REVVING_1
+                self.revving_1_start_time = self.timer.getFPGATimestamp()
+                print("revving")
 
         elif self.stage == self.REVVING_1:
             self.shooter.shooter_spin(1)
@@ -73,6 +78,7 @@ class Autonomous:
             if self.revving_1_start_time + 1 < self.timer.getFPGATimestamp():
                 self.stage = self.SHOOTING_1
                 self.shooting_1_start_time = self.timer.getFPGATimestamp()
+                print("shooting")
 
         elif self.stage == self.SHOOTING_1:
             self.shooter.shooter_spin(1)
@@ -81,87 +87,19 @@ class Autonomous:
             if self.shooting_1_start_time + 1.5 < self.timer.getFPGATimestamp():
                 self.stage = self.BACKING_UP
                 self.backing_up_start_time = self.timer.getFPGATimestamp()
+                print("backing up")
 
         elif self.stage == self.BACKING_UP:
-            self.drive.tank_drive(-0.5, -0.5)
+            self.shooter.shooter_spin(0)
+            self.intake.intake_spin(0)
 
-            if self.backing_up_start_time + 3 < self.timer.getFPGATimestamp():
+            self.drive.tank_drive(0.5, 0.5)
+
+            if self.backing_up_start_time + 1.5 < self.timer.getFPGATimestamp():
                 self.stage = self.FINISHED
+                print("done")
 
-        if self.stage == self.FINISHED:
-            pass
-
-    # shoots pre-loaded note, backs up out of community, turns, intakes another note, and shoots it
-    def two_note_auto(self):
-        if self.stage == self.IDLE:
-            # perform checks
-            self.stage = self.REVVING_1
-            self.revving_1_start_time = self.timer.getFPGATimestamp()
-
-        elif self.stage == self.REVVING_1:
-            self.shooter.shooter_spin(1)
-
-            # rev shooter motor for 1 second
-            if self.revving_1_start_time + 1 < self.timer.getFPGATimestamp():
-                self.stage = self.SHOOTING_1
-                self.shooting_1_start_time = self.timer.getFPGATimestamp()
-
-        elif self.stage == self.SHOOTING_1:
-            # spin intake and shooter to feed note
-            self.intake.intake_spin(1)
-            self.shooter.shooter_spin(1)
-        
-            # feed for 1.5 seconds
-            if self.shooting_1_start_time + 1.5 < self.timer.getFPGATimestamp():
-                self.stage = self.BACKING_UP
-                self.backing_up_start_time = self.timer.getFPGATimestamp()
-
-        elif self.stage == self.BACKING_UP:
-            # drive backward for 3 seconds at 0.5 speed
-            self.drive.tank_drive(-0.5, -0.5)
-
-            if self.backing_up_start_time + 3 < self.timer.getFPGATimestamp():
-                self.stage = self.TURNING
-                self.turning_start_angle = self.drive.drive_imu.get_yaw()
-
-        elif self.stage == self.TURNING:
-            # calculate how far we have turned relative to our angle before starting to turn
-            turning_distance = abs(self.drive.drive_imu.get_yaw() - self.turning_start_angle)
-
-            # if we are not within 3 degrees of 180 degrees of rotation, keep turning
-            # else, move on to the next stage
-            if not abs(turning_distance - 180) < 3:
-                self.drive.tank_drive(-0.3, 0.3)
-            else:
-                self.stage = self.INTAKING
-
-        
-        elif self.stage == self.INTAKING:
-            # drive forward for 2 seconds and spin intake
-            self.drive.tank_drive(0.4, 0.4)
-            self.intake.intake_spin(1)
-
-            if self.intaking_start_time + 2 < self.timer.getFPGATimestamp():
-                self.stage = self.REVVING_2
-                self.revving_2_start_time = self.timer.getFPGATimestamp()
-
-        elif self.stage == self.REVVING_2:
-            # rev shooter motor for 1 second
-            self.shooter.shooter_spin(1)
-
-            if self.revving_2_start_time + 1 < self.timer.getFPGATimestamp():
-                self.stage = self.SHOOTING_2
-                self.shooting_2_start_time = self.timer.getFPGATimestamp()
-
-        elif self.stage == self.SHOOTING_2:
-            # spin intake and shooter for 1.5 seconds to feed note
-            self.intake.intake_spin(1)
-            self.shooter.shooter_spin(1)
-
-            if self.shooting_2_start_time + 1.5 < self.timer.getFPGATimestamp():
-                self.stage = self.FINISHED
-        
         elif self.stage == self.FINISHED:
-            pass
+            self.drive.tank_drive(0, 0)
 
-
+        self.arm.arm_to_angle(self.arm.desired_position)
