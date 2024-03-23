@@ -25,11 +25,14 @@ class AmpAlign:
             
             apriltag_id = apriltag_data[3]
 
+            if not (apriltag_x == 4 or apriltag_x == 8):
+                return
+
             apriltag_x = apriltag_data[0]
 
             if abs(apriltag_x) < 20:
                 self.stage = self.FINISHED
-
+ 
             else:
                 if apriltag_x < -20:
                     self.drive.mecanum_drive_robot_oriented(-0.2, 0, 0)
@@ -37,5 +40,5 @@ class AmpAlign:
                     self.drive.mecanum_drive_robot_oriented(0.2, 0, 0)
 
         elif self.stage == self.FINISHED:
-            pass
+            self.drive.tank_drive(0, 0)
 

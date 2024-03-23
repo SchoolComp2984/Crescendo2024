@@ -73,7 +73,7 @@ class Arm:
         return interpolation_array(value, arr)
     
     def arm_to_angle(self, desired_angle):
-        if desired_angle < -10 or desired_angle > 96:
+        if desired_angle < -10 or desired_angle > 90:
             return
 
         # get our current arm angle

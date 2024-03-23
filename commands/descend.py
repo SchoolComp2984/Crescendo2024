@@ -26,8 +26,11 @@ class Descend:
                 self.stage = self.DOWN
 
         elif self.stage == self.TIPPING:
-            self.arm.set_speed(-0.02)
-
+            if self.arm.get_arm_pitch() > 80:
+                self.arm.set_speed(-0.05)
+            else:
+                self.arm.set_speed(-0.03)
+            
             if self.arm.get_arm_pitch() <= 60:
                 self.stage = self.DOWN
 

@@ -85,14 +85,14 @@ class Drive:
         # a list of points that will define a "curve" for interpolation
     
         arr = [ \
-        [-1,-0.85],\
-        [-.9,-0.4],\
-        [-.65,-0.22],\
+        [-1,-1],\
+        [-.9,-0.6],\
+        [-.65,-0.25],\
         [-.14,0],\
         [.14,0],\
-        [.65,0.22],\
-        [.9,0.4],\
-        [1,0.85]]
+        [.65,0.25],\
+        [.9,0.6],\
+        [1,1]]
 
         return interpolation_array(value, arr)
     

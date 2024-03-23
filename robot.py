@@ -3,6 +3,8 @@ import wpilib
 import phoenix5
 import rev
 
+import math
+
 # import subsystems
 from subsystems.drive import Drive
 from subsystems.shooter import Shooter
@@ -69,7 +71,7 @@ class MyRobot(wpilib.TimedRobot):
         self.climb_motor_left_front = phoenix5._ctre.WPI_TalonSRX(constants.CLIMB_MOTOR_LEFT_FRONT_ID)
         self.climb_motor_right_front = phoenix5._ctre.WPI_TalonSRX(constants.CLIMB_MOTOR_RIGHT_FRONT_ID)
         self.climb_motor_left_back = phoenix5._ctre.WPI_TalonSRX(constants.CLIMB_MOTOR_LEFT_BACK_ID)
-        self.climb_motor_right_back = phoenix5._ctre.WPI_VictorSPX(constants.CLIMB_MOTOR_RIGHT_BACK_ID)
+        self.climb_motor_right_back = phoenix5._ctre.WPI_TalonSRX(constants.CLIMB_MOTOR_RIGHT_BACK_ID)
 
         # instances of our subsystems - passing in references to motors, sensors, etc.
         self.arm = Arm(self.arm_motor_left_front, self.arm_motor_left_back, self.arm_motor_right_front, self.arm_motor_right_back, self.arm_imu)
@@ -100,13 +102,16 @@ class MyRobot(wpilib.TimedRobot):
 
     # ran every 20 ms during autonomous mode
     def autonomousPeriodic(self):
-        self.autonomous.one_note_auto()
+        self.autonomous.two_note_auto()
          
     # setup before our robot transitions to teleop (where we control with a joystick or custom controller)
     def teleopInit(self):
         self.descend.descending = False
         self.descend.stage = self.descend.IDLE
         self.amp_align.stage = self.amp_align.IDLE
+
+        if abs(self.arm.get_arm_pitch() - 80) < 10:
+            self.arm.desired_position = 86
 
     # ran every 20 ms during teleop
     def teleopPeriodic(self):
@@ -126,6 +131,7 @@ class MyRobot(wpilib.TimedRobot):
         shooting_position_button_pressed = self.operator_controller.getPOV() == 270
         under_stage_button_pressed = self.driver_controller.getTriggerPressed()
         reset_imu_button_pressed = self.driver_controller.getRawButton(11)
+        arm_up_button_pressed = self.operator_controller.getLeftTriggerAxis() == 1
        
         # ---------- INTAKE ----------
         if intake_button_pressed:
@@ -152,47 +158,27 @@ class MyRobot(wpilib.TimedRobot):
         # ---------- SHOOTER ----------
         if shoot_button_pressed:
             self.shooter.shooter_spin(1)
-            self.arm.shooting_override = True
 
         else:
             if amp_shoot_button_pressed:
-                self.shooter.shooter_spin(0.3)
+                self.shooter.shooter_spin(0.025)
 
             else:
                 self.shooter.stop()
-        
-        if intake_position_button_pressed:
-            self.descend.descending = True
 
-        if not self.descend.descending:
-            # ---------- ARM CONTROLS ----------
-            if amp_blocking_position_button_pressed:
-                self.arm.desired_position = 75
-                self.arm.shooting_override = False
-
-            elif inside_chassis_position_button_pressed:
-                self.arm.desired_position = 60
-                self.arm.shooting_override = False
-
-            elif under_stage_button_pressed:
-                self.arm.desired_position = 15
-                self.arm.shooting_override = False
-
-            elif shooting_position_button_pressed:
-                self.arm.desired_position = 28
-                self.arm.shooting_override = False
-
-            # set arm to position
+        if amp_blocking_position_button_pressed:
+            self.arm.desired_position = 85
             self.arm.arm_to_angle(self.arm.desired_position)
-        else:
-            self.descend.descend()
+
+        if arm_up_button_pressed:
+            if (self.arm.get_arm_pitch() < 60):
+                self.arm.set_speed(0.25 * math.cos(self.arm.get_arm_pitch() * math.pi / 180))
+        elif not amp_blocking_position_button_pressed:
+            if (self.arm.get_arm_pitch() > 70):
+                self.arm.set_speed(-0.05)
+            else:
+                self.arm.set_speed(0.06)
  
-        if amp_align_button_pressed:
-            self.amp_align.amp_align()
-            self.enable_drive = False
-        else:
-            self.amp_align.stage = self.amp_align.IDLE
-            self.enable_drive = True
         
         # check if drive is enabled
         if self.enable_drive:
